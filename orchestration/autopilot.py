@@ -429,6 +429,7 @@ def run_pipeline(args: argparse.Namespace) -> int:
             sandbox = 'danger-full-access' if args.full_access else 'workspace-write'
             # --ask-for-approval is a global option on Codex CLI.
             cmd=[shutil.which('codex') or 'codex', '--ask-for-approval', 'never',
+                 '--model', 'gpt-6-luna','--config', 'model_reasoning_effort="max"',
                  'exec', '--sandbox', sandbox, '--cd', str(ROOT),
                  '--output-last-message', str(output_path), prompt]
             call_log=LOG_DIR/f'{ticket}-attempt-{attempt:02d}-codex.log'
