@@ -1,0 +1,196 @@
+[
+  {
+    "id": "PROTO-AT-01",
+    "operation_ids": [
+      "createProcess"
+    ],
+    "expected_from_f4": "Radicado de 23 dígitos y proceso persistido",
+    "status": "NOT_EXECUTED",
+    "type": "integration_e2e",
+    "fixture_id": "DEMO-LEGALTECH-001"
+  },
+  {
+    "id": "PROTO-AT-02",
+    "operation_ids": [
+      "createTracking",
+      "activateTracking"
+    ],
+    "expected_from_f4": "Dos seguimientos y activación de A",
+    "status": "NOT_EXECUTED",
+    "type": "integration_e2e",
+    "fixture_id": "DEMO-LEGALTECH-001"
+  },
+  {
+    "id": "PROTO-AT-03",
+    "operation_ids": [
+      "createAcquisition",
+      "adoptObservation"
+    ],
+    "expected_from_f4": "OBS-001 baseline A sin novedad",
+    "status": "NOT_EXECUTED",
+    "type": "integration_e2e",
+    "fixture_id": "DEMO-LEGALTECH-001"
+  },
+  {
+    "id": "PROTO-AT-04",
+    "operation_ids": [
+      "createAcquisition",
+      "compareObservations"
+    ],
+    "expected_from_f4": "OBS-002 añade ACT-06",
+    "status": "NOT_EXECUTED",
+    "type": "integration_e2e",
+    "fixture_id": "DEMO-LEGALTECH-001"
+  },
+  {
+    "id": "PROTO-AT-05",
+    "operation_ids": [
+      "compareObservations"
+    ],
+    "expected_from_f4": "Mismo par y regla no duplican cambio",
+    "status": "NOT_EXECUTED",
+    "type": "integration_e2e",
+    "fixture_id": "DEMO-LEGALTECH-001"
+  },
+  {
+    "id": "PROTO-AT-06",
+    "operation_ids": [
+      "adoptObservation",
+      "evaluateComparison"
+    ],
+    "expected_from_f4": "A crea novedad una vez y B no retroactiva",
+    "status": "NOT_EXECUTED",
+    "type": "integration_e2e",
+    "fixture_id": "DEMO-LEGALTECH-001"
+  },
+  {
+    "id": "PROTO-AT-07",
+    "operation_ids": [
+      "startOperativeReview",
+      "escalateNovelty"
+    ],
+    "expected_from_f4": "Revisión operativa de analista asignado",
+    "status": "NOT_EXECUTED",
+    "type": "integration_e2e",
+    "fixture_id": "DEMO-LEGALTECH-001"
+  },
+  {
+    "id": "PROTO-AT-08",
+    "operation_ids": [
+      "recordLegalReview"
+    ],
+    "expected_from_f4": "Valoración jurídica humana de abogado asignado",
+    "status": "NOT_EXECUTED",
+    "type": "integration_e2e",
+    "fixture_id": "DEMO-LEGALTECH-001"
+  },
+  {
+    "id": "PROTO-AT-09",
+    "operation_ids": [
+      "createPublication",
+      "portalCurrentPublication"
+    ],
+    "expected_from_f4": "Borrador no visible externamente",
+    "status": "NOT_EXECUTED",
+    "type": "integration_e2e",
+    "fixture_id": "DEMO-LEGALTECH-001"
+  },
+  {
+    "id": "PROTO-AT-10",
+    "operation_ids": [
+      "submitPublicationVersion",
+      "decidePublicationVersion"
+    ],
+    "expected_from_f4": "Aprobación por persona distinta",
+    "status": "NOT_EXECUTED",
+    "type": "integration_e2e",
+    "fixture_id": "DEMO-LEGALTECH-001"
+  },
+  {
+    "id": "PROTO-AT-11",
+    "operation_ids": [
+      "publishPublicationVersion",
+      "portalCurrentPublication"
+    ],
+    "expected_from_f4": "Publicación vigente tras commit",
+    "status": "NOT_EXECUTED",
+    "type": "integration_e2e",
+    "fixture_id": "DEMO-LEGALTECH-001"
+  },
+  {
+    "id": "PROTO-AT-12",
+    "operation_ids": [
+      "portalCurrentPublication"
+    ],
+    "expected_from_f4": "B jamás obtiene A incluso por UUID",
+    "status": "NOT_EXECUTED",
+    "type": "integration_e2e",
+    "fixture_id": "DEMO-LEGALTECH-001"
+  },
+  {
+    "id": "PROTO-AT-13",
+    "operation_ids": [
+      "suspendClient",
+      "portalCurrentPublication"
+    ],
+    "expected_from_f4": "Suspensión bloquea portal sin borrar datos",
+    "status": "NOT_EXECUTED",
+    "type": "integration_e2e",
+    "fixture_id": "DEMO-LEGALTECH-001"
+  },
+  {
+    "id": "PROTO-AT-14",
+    "operation_ids": [
+      "finishTracking",
+      "portalCurrentPublication"
+    ],
+    "expected_from_f4": "Finalización bloquea portal, preserva historia",
+    "status": "NOT_EXECUTED",
+    "type": "integration_e2e",
+    "fixture_id": "DEMO-LEGALTECH-001"
+  },
+  {
+    "id": "PROTO-AT-15",
+    "operation_ids": [
+      "createAcquisition",
+      "getAcquisition"
+    ],
+    "expected_from_f4": "Fallo no es no-cambios",
+    "status": "NOT_EXECUTED",
+    "type": "integration_e2e",
+    "fixture_id": "DEMO-LEGALTECH-001"
+  },
+  {
+    "id": "PROTO-AT-16",
+    "operation_ids": [
+      "healthz",
+      "login"
+    ],
+    "expected_from_f4": "Seed/reinicio demo por CLI + API",
+    "status": "NOT_EXECUTED",
+    "type": "integration_e2e",
+    "fixture_id": "DEMO-LEGALTECH-001"
+  },
+  {
+    "id": "PROTO-AT-17",
+    "operation_ids": [
+      "portalCurrentPublication"
+    ],
+    "expected_from_f4": "Cuenta A sin ámbito A2 recibe 404",
+    "status": "NOT_EXECUTED",
+    "type": "integration_e2e",
+    "fixture_id": "DEMO-LEGALTECH-001"
+  },
+  {
+    "id": "PROTO-AT-18",
+    "operation_ids": [
+      "createPublicationVersion",
+      "submitPublicationVersion",
+      "decidePublicationVersion"
+    ],
+    "expected_from_f4": "Nueva versión exige nueva aprobación",
+    "status": "NOT_EXECUTED",
+    "type": "integration_e2e",
+    "fixture_id": "DEMO-LEGALTECH-001"
+  }
+]

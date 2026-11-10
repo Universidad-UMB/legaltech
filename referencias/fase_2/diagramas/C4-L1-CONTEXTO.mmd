@@ -1,0 +1,20 @@
+flowchart LR
+  subgraph Humanos[Actores y consumidores]
+    AN[Analista interno]
+    AB[Abogado interno]
+    PR[Preparador interno]
+    CO[Coordinador interno]
+    EX[Cuenta externa de Alfa o Beta]
+  end
+  SYS["Sistema LegalTech\nVigilancia judicial, revisión y publicación"]
+  AN -->|"Administrar seguimientos y revisar hechos"| SYS
+  AB -->|"Registrar valoración jurídica"| SYS
+  PR -->|"Preparar contenido versionado"| SYS
+  CO -->|"Aprobar y publicar"| SYS
+  EX -->|"Consultar solo ámbitos autorizados"| SYS
+  NOTE["Fuentes judiciales reales y LLM\nFUERA del prototipo"]
+  NOTE -. "Futuro, sujeto a autorización" .-> SYS
+  classDef system fill:#dbeafe,stroke:#2563eb,color:#1e3a8a;
+  classDef external fill:#f1f5f9,stroke:#64748b,color:#334155;
+  class SYS system;
+  class NOTE external;

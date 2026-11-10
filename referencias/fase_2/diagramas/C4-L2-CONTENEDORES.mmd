@@ -1,0 +1,14 @@
+flowchart TB
+  ACT["Actores internos y externos"]
+  UI["Cliente HTTP de prueba / OpenAPI\nFuturo frontend Vue"]
+  subgraph SYSTEM["Sistema LegalTech - prototipo backend"]
+    API["Contenedor: API FastAPI\nPython, reglas, módulos, adaptador sintético"]
+    DB[("Contenedor: PostgreSQL\nClientes, seguimientos, observaciones,\nnovedades, versiones y auditoría")]
+  end
+  ACT -->|"Acciones humanas"| UI
+  UI -->|"HTTPS/HTTP solo local en demo, JSON"| API
+  API -->|"SQLAlchemy / psycopg 3"| DB
+  classDef app fill:#dbeafe,stroke:#2563eb,color:#1e3a8a;
+  classDef db fill:#ecfdf5,stroke:#059669,color:#065f46;
+  class API app;
+  class DB db;

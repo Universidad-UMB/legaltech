@@ -1,0 +1,40 @@
+﻿id,scenario,expected,references,status
+DT-01,"Insertar radicado de 22, 24 caracteres o letras",`CHECK` rechaza,AT-01,NOT_EXECUTED
+DT-02,Repetir mismo radicado de 23 dígitos,`UNIQUE` rechaza o el caso de uso recupera el mismo proceso,AT-01,NOT_EXECUTED
+DT-03,Crear A y B sobre mismo proceso con clientes distintos,Dos seguimientos válidos; datos privados separados,AT-02,NOT_EXECUTED
+DT-04,Intentar asignar scope de cuenta A a seguimiento B,FK compuesta rechaza,AT-12,NOT_EXECUTED
+DT-05,Intentar asignar scope a cuenta INTERNAL,FK compuesta + CHECK rechazan,AT-17,NOT_EXECUTED
+DT-06,Repetir scope activo A a un mismo seguimiento,PK rechaza; operación puede ser idempotente,AT-17,NOT_EXECUTED
+DT-07,Adoptar en A observación de otro proceso,FK compuesta rechaza,AT-03,NOT_EXECUTED
+DT-08,Adoptar observación incompleta o sin `sealed_at`,Trigger rechaza; baseline queda sin cambios,AT-15,NOT_EXECUTED
+DT-09,Dos asignaciones concurrentes de primera baseline,Lock sobre fila; solo OBS-001 elegible como primera baseline,AT-03,NOT_EXECUTED
+DT-10,Insertar run FAILED y luego observación COMPARABLE,Trigger rechaza; error no equivale a no-cambio,AT-15,NOT_EXECUTED
+DT-11,Agregar ACT después de sellar observación,"Trigger rechaza, snapshot intacto",AT-03/04,NOT_EXECUTED
+DT-12,Cambiar/eliminar snapshot sellado,Trigger rechaza,AT-04,NOT_EXECUTED
+DT-13,Comparar observaciones de diferentes procesos,FK compuesta rechaza,AT-04,NOT_EXECUTED
+DT-14,Comparar observaciones invertidas temporalmente o no selladas,Trigger rechaza,AT-04/15,NOT_EXECUTED
+DT-15,Reinsertar par OBS-001→OBS-002 con misma regla,`UNIQUE` rechaza; servicio devuelve comparación ya persistida,AT-05,NOT_EXECUTED
+DT-16,Reinsertar ACT-06 en misma comparación,`UNIQUE` rechaza; una fila definitiva,AT-05,NOT_EXECUTED
+DT-17,Cambio ACT-06 que no existe en snapshot nuevo,FK compuesta rechaza,AT-04,NOT_EXECUTED
+DT-18,Crear novedad con cambio de otro proceso o seguimiento,FK compuesta rechaza,AT-06/12,NOT_EXECUTED
+DT-19,Crear novedad con evaluación SKIPPED,FK compuesta decisión='ELIGIBLE' rechaza,AT-06,NOT_EXECUTED
+DT-20,Dos UoW insertan misma novedad A/ACT-06 a la vez,Una fila; perdedor recupera existente en nuevo UoW,AT-06,NOT_EXECUTED
+DT-21,Cuenta B consulta información interna A por ID,Caso de uso deniega; DB conserva ambas correctamente,AT-12,NOT_EXECUTED
+DT-22,Analista intenta insertar valoración jurídica por API,"Caso de uso deniega, sin nueva review",AT-08,NOT_EXECUTED
+DT-23,Insertar preparador con person_id que no coincide con account_id,FK compuesta rechaza,AT-10,NOT_EXECUTED
+DT-24,Someter versión sin preparador o novedad vinculada,Trigger rechaza,AT-09,NOT_EXECUTED
+DT-25,"Editar cuerpo, destinatario o enlaces de versión sometida",Trigger rechaza; requiere nueva versión,AT-18,NOT_EXECUTED
+DT-26,Preparador intenta aprobar usando otra cuenta misma persona,Trigger rechaza,AT-10,NOT_EXECUTED
+DT-27,Aprobar con hash distinto de versión congelada,Trigger rechaza,AT-10/18,NOT_EXECUTED
+DT-28,Publicación A apunta a versión de publicación B,FK compuesta rechaza,AT-11/12,NOT_EXECUTED
+DT-29,Publicación apunta a versión no PUBLISHED,Trigger rechaza,AT-09/10,NOT_EXECUTED
+DT-30,"Falla tras actualizar versión a PUBLISHED, antes del puntero vigente","Rollback deja estado APPROVED/puntero anterior, sin fuga",AT-11,NOT_EXECUTED
+DT-31,"Intentar consulta de versión A vigente con B, o A sin scope",Caso de uso retorna denegación sin contenido,AT-12/17,NOT_EXECUTED
+DT-32,Suspender A con versión publicada,Consulta denegada; pub/historial preservados,AT-13,NOT_EXECUTED
+DT-33,Finalizar SEG-A-001 con versión publicada,Consulta denegada; pub/historial preservados,AT-14,NOT_EXECUTED
+DT-34,Reiniciar API y DB sin reset,Datos existentes siguen disponibles,AT-16 + persistencia,NOT_EXECUTED
+DT-35,Ejecutar seed sintético dos veces en mismo entorno demo,"Resultado determinista; sin duplicados, sin reset implícito",AT-16,NOT_EXECUTED
+DT-36,Transición válida con actor; denegación auditada sin contraseña/token,Audit y estado correctos; información sanitizada,AT-07/08/13,NOT_EXECUTED
+DT-37,Dos cuentas de persona preparadora y una de aprobador distinto,El segundo puede aprobar si rol/scope/estado cumplen,AT-10,NOT_EXECUTED
+DT-38,Revisión operativa→jurídica y publicación de novedad de B en A,La inclusión cruzada falla por FK del seguimiento,AT-08/12,NOT_EXECUTED
+DT-39,Cuenta interna sin asignación a A intenta revisar novedad A,Servicio deniega aunque tenga rol ANALYST,AT-07/12 + negativo,NOT_EXECUTED

@@ -1,0 +1,16 @@
+flowchart TD
+    CLI[Clientes y estados] --> SEG[Procesos y seguimientos]
+    ID[Identidad y autorización] -.-> SEG
+    ID -.-> NOV[Novedades y revisión]
+    ID -.-> PUB[Publicación y versiones]
+    OBS[Adquisición y observaciones] --> CMP[Comparación técnica]
+    SEG --> CMP
+    CMP -- Cambio técnico + elegibilidad específica --> NOV
+    NOV -- Contenido revisado --> PUB
+    PUB --> POR[Portal protegido]
+    SEG --> POR
+    CLI --> POR
+    ID --> POR
+    AUD[Auditoría] -. hechos/denegaciones .-> POR
+    AUD -. decisiones .-> NOV
+    AUD -. autorizaciones .-> PUB

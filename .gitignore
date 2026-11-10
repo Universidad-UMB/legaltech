@@ -1,0 +1,17 @@
+# Secrets and local runtime
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+.autopilot/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+backend/.venv/
+*.sqlite3
+*.log

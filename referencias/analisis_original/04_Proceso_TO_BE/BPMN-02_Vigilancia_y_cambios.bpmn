@@ -1,0 +1,300 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Defs_VIG" targetNamespace="https://grado.legaltech.edu/tobe/0.2" exporter="TOBE-001 Engineering Analysis" exporterVersion="0.2">
+  <bpmn:process id="Process_VIG" name="SP-02/03 Consulta, historial y detección" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_VIG">
+      <bpmn:lane id="Lane_VIG_Sistema" name="Sistema">
+        <bpmn:flowNodeRef>VIG_timer</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>VIG_elig</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>VIG_enabled</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>VIG_block</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>VIG_endblock</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>VIG_get</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>VIG_result</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>VIG_fail</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>VIG_endfail</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>VIG_complete</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>VIG_persist</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>VIG_baseline</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>VIG_first</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>VIG_endfirst</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>VIG_compare</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>VIG_diff</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>VIG_none</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>VIG_endnone</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>VIG_unique</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>VIG_create</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>VIG_endchanges</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_VIG_Analista" name="Analista">
+        <bpmn:flowNodeRef>VIG_manual</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>VIG_partial</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>VIG_endpartial</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="VIG_manual" name="Consulta solicitada"/>
+    <bpmn:startEvent id="VIG_timer" name="Vigilancia programada">
+      <bpmn:timerEventDefinition id="Timer_VIG_timer"/>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="VIG_elig" name="Verificar seguimiento y fuente"/>
+    <bpmn:exclusiveGateway id="VIG_enabled" name="¿Consulta permitida y habilitada?"/>
+    <bpmn:serviceTask id="VIG_block" name="Registrar pendiente de integración"/>
+    <bpmn:endEvent id="VIG_endblock" name="Pendiente, sin consulta"/>
+    <bpmn:serviceTask id="VIG_get" name="Consultar fuente">
+      <bpmn:documentation>Operación condicionada a permisos y acceso técnico; no supone scraping autorizado.</bpmn:documentation>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="VIG_result" name="¿Respuesta disponible?"/>
+    <bpmn:serviceTask id="VIG_fail" name="Registrar error y política de reintento"/>
+    <bpmn:endEvent id="VIG_endfail" name="Consulta fallida"/>
+    <bpmn:exclusiveGateway id="VIG_complete" name="¿Observación comparable?"/>
+    <bpmn:userTask id="VIG_partial" name="Revisar respuesta incompleta"/>
+    <bpmn:endEvent id="VIG_endpartial" name="Revisión de integridad pendiente"/>
+    <bpmn:serviceTask id="VIG_persist" name="Normalizar y conservar observación"/>
+    <bpmn:exclusiveGateway id="VIG_baseline" name="¿Existe línea base válida?"/>
+    <bpmn:serviceTask id="VIG_first" name="Establecer línea base"/>
+    <bpmn:endEvent id="VIG_endfirst" name="Seguimiento inicializado"/>
+    <bpmn:serviceTask id="VIG_compare" name="Comparar observaciones compatibles"/>
+    <bpmn:exclusiveGateway id="VIG_diff" name="¿Cambios nuevos?"/>
+    <bpmn:serviceTask id="VIG_none" name="Registrar sin cambios"/>
+    <bpmn:endEvent id="VIG_endnone" name="Consulta sin cambios"/>
+    <bpmn:serviceTask id="VIG_unique" name="Aplicar idempotencia"/>
+    <bpmn:serviceTask id="VIG_create" name="Relacionar a seguimientos y generar candidatas"/>
+    <bpmn:endEvent id="VIG_endchanges" name="Novedades pendientes de revisión"/>
+    <bpmn:sequenceFlow id="VIG_Flow_01" sourceRef="VIG_manual" targetRef="VIG_elig"/>
+    <bpmn:sequenceFlow id="VIG_Flow_02" sourceRef="VIG_timer" targetRef="VIG_elig"/>
+    <bpmn:sequenceFlow id="VIG_Flow_03" sourceRef="VIG_elig" targetRef="VIG_enabled"/>
+    <bpmn:sequenceFlow id="VIG_Flow_04" sourceRef="VIG_enabled" targetRef="VIG_block" name="No"/>
+    <bpmn:sequenceFlow id="VIG_Flow_05" sourceRef="VIG_block" targetRef="VIG_endblock"/>
+    <bpmn:sequenceFlow id="VIG_Flow_06" sourceRef="VIG_enabled" targetRef="VIG_get" name="Sí"/>
+    <bpmn:sequenceFlow id="VIG_Flow_07" sourceRef="VIG_get" targetRef="VIG_result"/>
+    <bpmn:sequenceFlow id="VIG_Flow_08" sourceRef="VIG_result" targetRef="VIG_fail" name="No"/>
+    <bpmn:sequenceFlow id="VIG_Flow_09" sourceRef="VIG_fail" targetRef="VIG_endfail"/>
+    <bpmn:sequenceFlow id="VIG_Flow_10" sourceRef="VIG_result" targetRef="VIG_complete" name="Sí"/>
+    <bpmn:sequenceFlow id="VIG_Flow_11" sourceRef="VIG_complete" targetRef="VIG_partial" name="No"/>
+    <bpmn:sequenceFlow id="VIG_Flow_12" sourceRef="VIG_partial" targetRef="VIG_endpartial"/>
+    <bpmn:sequenceFlow id="VIG_Flow_13" sourceRef="VIG_complete" targetRef="VIG_persist" name="Sí"/>
+    <bpmn:sequenceFlow id="VIG_Flow_14" sourceRef="VIG_persist" targetRef="VIG_baseline"/>
+    <bpmn:sequenceFlow id="VIG_Flow_15" sourceRef="VIG_baseline" targetRef="VIG_first" name="No"/>
+    <bpmn:sequenceFlow id="VIG_Flow_16" sourceRef="VIG_first" targetRef="VIG_endfirst"/>
+    <bpmn:sequenceFlow id="VIG_Flow_17" sourceRef="VIG_baseline" targetRef="VIG_compare" name="Sí"/>
+    <bpmn:sequenceFlow id="VIG_Flow_18" sourceRef="VIG_compare" targetRef="VIG_diff"/>
+    <bpmn:sequenceFlow id="VIG_Flow_19" sourceRef="VIG_diff" targetRef="VIG_none" name="No"/>
+    <bpmn:sequenceFlow id="VIG_Flow_20" sourceRef="VIG_none" targetRef="VIG_endnone"/>
+    <bpmn:sequenceFlow id="VIG_Flow_21" sourceRef="VIG_diff" targetRef="VIG_unique" name="Sí"/>
+    <bpmn:sequenceFlow id="VIG_Flow_22" sourceRef="VIG_unique" targetRef="VIG_create"/>
+    <bpmn:sequenceFlow id="VIG_Flow_23" sourceRef="VIG_create" targetRef="VIG_endchanges"/>
+  </bpmn:process>
+  <bpmn:collaboration id="Collaboration_VIG">
+    <bpmn:participant id="Participant_Operator_VIG" name="Organización jurídica operadora" processRef="Process_VIG"/>
+    <bpmn:participant id="Participant_VIG_Fuente_judicial_autorizada" name="Fuente judicial autorizada"/>
+    <bpmn:messageFlow id="VIG_Message_01" name="Solicitud de consulta judicial" sourceRef="VIG_get" targetRef="Participant_VIG_Fuente_judicial_autorizada"/>
+    <bpmn:messageFlow id="VIG_Message_02" name="Respuesta judicial" sourceRef="Participant_VIG_Fuente_judicial_autorizada" targetRef="VIG_get"/>
+  </bpmn:collaboration>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_VIG" name="SP-02/03 Consulta, historial y detección">
+    <bpmndi:BPMNPlane id="BPMNPlane_VIG" bpmnElement="Collaboration_VIG">
+      <bpmndi:BPMNShape id="DI_Participant_Operator_VIG" bpmnElement="Participant_Operator_VIG" isHorizontal="true">
+        <dc:Bounds x="70" y="70" width="3220" height="336"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_Lane_VIG_Sistema" bpmnElement="Lane_VIG_Sistema" isHorizontal="true">
+        <dc:Bounds x="108" y="70" width="3182" height="168"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_Lane_VIG_Analista" bpmnElement="Lane_VIG_Analista" isHorizontal="true">
+        <dc:Bounds x="108" y="238" width="3182" height="168"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_Participant_VIG_Fuente_judicial_autorizada" bpmnElement="Participant_VIG_Fuente_judicial_autorizada" isHorizontal="true">
+        <dc:Bounds x="70" y="441" width="3220" height="105"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_manual" bpmnElement="VIG_manual">
+        <dc:Bounds x="180" y="304" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_timer" bpmnElement="VIG_timer">
+        <dc:Bounds x="180" y="136" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_elig" bpmnElement="VIG_elig">
+        <dc:Bounds x="410" y="114" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_enabled" bpmnElement="VIG_enabled">
+        <dc:Bounds x="640" y="128" width="52" height="52"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_block" bpmnElement="VIG_block">
+        <dc:Bounds x="870" y="72" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_endblock" bpmnElement="VIG_endblock">
+        <dc:Bounds x="1100" y="94" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_get" bpmnElement="VIG_get">
+        <dc:Bounds x="870" y="156" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_result" bpmnElement="VIG_result">
+        <dc:Bounds x="1100" y="170" width="52" height="52"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_fail" bpmnElement="VIG_fail">
+        <dc:Bounds x="1330" y="72" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_endfail" bpmnElement="VIG_endfail">
+        <dc:Bounds x="1560" y="94" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_complete" bpmnElement="VIG_complete">
+        <dc:Bounds x="1330" y="170" width="52" height="52"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_partial" bpmnElement="VIG_partial">
+        <dc:Bounds x="1560" y="282" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_endpartial" bpmnElement="VIG_endpartial">
+        <dc:Bounds x="1790" y="304" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_persist" bpmnElement="VIG_persist">
+        <dc:Bounds x="1560" y="156" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_baseline" bpmnElement="VIG_baseline">
+        <dc:Bounds x="1790" y="128" width="52" height="52"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_first" bpmnElement="VIG_first">
+        <dc:Bounds x="2020" y="72" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_endfirst" bpmnElement="VIG_endfirst">
+        <dc:Bounds x="2250" y="94" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_compare" bpmnElement="VIG_compare">
+        <dc:Bounds x="2020" y="156" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_diff" bpmnElement="VIG_diff">
+        <dc:Bounds x="2250" y="170" width="52" height="52"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_none" bpmnElement="VIG_none">
+        <dc:Bounds x="2480" y="72" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_endnone" bpmnElement="VIG_endnone">
+        <dc:Bounds x="2710" y="94" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_unique" bpmnElement="VIG_unique">
+        <dc:Bounds x="2480" y="156" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_create" bpmnElement="VIG_create">
+        <dc:Bounds x="2710" y="156" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_VIG_endchanges" bpmnElement="VIG_endchanges">
+        <dc:Bounds x="2940" y="136" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="DI_VIG_Flow_01" bpmnElement="VIG_Flow_01">
+        <di:waypoint x="216" y="322"/>
+        <di:waypoint x="313" y="322"/>
+        <di:waypoint x="313" y="154"/>
+        <di:waypoint x="410" y="154"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Flow_02" bpmnElement="VIG_Flow_02">
+        <di:waypoint x="216" y="154"/>
+        <di:waypoint x="410" y="154"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Flow_03" bpmnElement="VIG_Flow_03">
+        <di:waypoint x="584" y="154"/>
+        <di:waypoint x="640" y="154"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Flow_04" bpmnElement="VIG_Flow_04">
+        <di:waypoint x="692" y="154"/>
+        <di:waypoint x="781" y="154"/>
+        <di:waypoint x="781" y="112"/>
+        <di:waypoint x="870" y="112"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Flow_05" bpmnElement="VIG_Flow_05">
+        <di:waypoint x="1044" y="112"/>
+        <di:waypoint x="1100" y="112"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Flow_06" bpmnElement="VIG_Flow_06">
+        <di:waypoint x="692" y="154"/>
+        <di:waypoint x="781" y="154"/>
+        <di:waypoint x="781" y="196"/>
+        <di:waypoint x="870" y="196"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Flow_07" bpmnElement="VIG_Flow_07">
+        <di:waypoint x="1044" y="196"/>
+        <di:waypoint x="1100" y="196"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Flow_08" bpmnElement="VIG_Flow_08">
+        <di:waypoint x="1152" y="196"/>
+        <di:waypoint x="1241" y="196"/>
+        <di:waypoint x="1241" y="112"/>
+        <di:waypoint x="1330" y="112"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Flow_09" bpmnElement="VIG_Flow_09">
+        <di:waypoint x="1504" y="112"/>
+        <di:waypoint x="1560" y="112"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Flow_10" bpmnElement="VIG_Flow_10">
+        <di:waypoint x="1152" y="196"/>
+        <di:waypoint x="1330" y="196"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Flow_11" bpmnElement="VIG_Flow_11">
+        <di:waypoint x="1382" y="196"/>
+        <di:waypoint x="1471" y="196"/>
+        <di:waypoint x="1471" y="322"/>
+        <di:waypoint x="1560" y="322"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Flow_12" bpmnElement="VIG_Flow_12">
+        <di:waypoint x="1734" y="322"/>
+        <di:waypoint x="1790" y="322"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Flow_13" bpmnElement="VIG_Flow_13">
+        <di:waypoint x="1382" y="196"/>
+        <di:waypoint x="1560" y="196"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Flow_14" bpmnElement="VIG_Flow_14">
+        <di:waypoint x="1734" y="196"/>
+        <di:waypoint x="1762" y="196"/>
+        <di:waypoint x="1762" y="154"/>
+        <di:waypoint x="1790" y="154"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Flow_15" bpmnElement="VIG_Flow_15">
+        <di:waypoint x="1842" y="154"/>
+        <di:waypoint x="1931" y="154"/>
+        <di:waypoint x="1931" y="112"/>
+        <di:waypoint x="2020" y="112"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Flow_16" bpmnElement="VIG_Flow_16">
+        <di:waypoint x="2194" y="112"/>
+        <di:waypoint x="2250" y="112"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Flow_17" bpmnElement="VIG_Flow_17">
+        <di:waypoint x="1842" y="154"/>
+        <di:waypoint x="1931" y="154"/>
+        <di:waypoint x="1931" y="196"/>
+        <di:waypoint x="2020" y="196"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Flow_18" bpmnElement="VIG_Flow_18">
+        <di:waypoint x="2194" y="196"/>
+        <di:waypoint x="2250" y="196"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Flow_19" bpmnElement="VIG_Flow_19">
+        <di:waypoint x="2302" y="196"/>
+        <di:waypoint x="2391" y="196"/>
+        <di:waypoint x="2391" y="112"/>
+        <di:waypoint x="2480" y="112"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Flow_20" bpmnElement="VIG_Flow_20">
+        <di:waypoint x="2654" y="112"/>
+        <di:waypoint x="2710" y="112"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Flow_21" bpmnElement="VIG_Flow_21">
+        <di:waypoint x="2302" y="196"/>
+        <di:waypoint x="2480" y="196"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Flow_22" bpmnElement="VIG_Flow_22">
+        <di:waypoint x="2654" y="196"/>
+        <di:waypoint x="2710" y="196"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Flow_23" bpmnElement="VIG_Flow_23">
+        <di:waypoint x="2884" y="196"/>
+        <di:waypoint x="2912" y="196"/>
+        <di:waypoint x="2912" y="154"/>
+        <di:waypoint x="2940" y="154"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Message_01" bpmnElement="VIG_Message_01">
+        <di:waypoint x="957" y="196"/>
+        <di:waypoint x="1680" y="494"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_VIG_Message_02" bpmnElement="VIG_Message_02">
+        <di:waypoint x="1680" y="494"/>
+        <di:waypoint x="957" y="196"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

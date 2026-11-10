@@ -1,0 +1,56 @@
+erDiagram
+    CLIENTS ||--o{ TRACKINGS : owns
+    JUDICIAL_PROCESSES ||--o{ TRACKINGS : monitored_by
+    JUDICIAL_PROCESSES ||--o{ ACQUISITION_RUNS : queries
+    ACQUISITION_RUNS ||--o| OBSERVATIONS : produces
+    OBSERVATIONS ||--o{ OBSERVED_ACTIONS : contains
+    JUDICIAL_PROCESSES ||--o{ OBSERVATIONS : observed_as
+    OBSERVATIONS o|--o{ TRACKINGS : baseline_and_last_adopted
+    OBSERVATIONS ||--o{ COMPARISONS : old_new
+    COMPARISONS ||--o{ TECHNICAL_CHANGES : discovers
+    OBSERVED_ACTIONS ||--o{ TECHNICAL_CHANGES : source_action
+    TRACKINGS ||--o{ TRACKING_EVALUATIONS : evaluates
+    COMPARISONS ||--o{ TRACKING_EVALUATIONS : evaluated_in
+    TRACKING_EVALUATIONS ||--o{ NOVELTIES : enables
+    TRACKINGS ||--o{ NOVELTIES : owns
+    TECHNICAL_CHANGES ||--o{ NOVELTIES : represented_by
+    NOVELTIES ||--o{ NOVELTY_REVIEWS : reviewed_by
+
+    JUDICIAL_PROCESSES {
+        uuid id PK
+        varchar radicado UK
+    }
+    TRACKINGS {
+        uuid id PK
+        uuid client_id FK
+        uuid process_id FK
+        uuid baseline_observation_id FK
+        uuid last_adopted_observation_id FK
+        varchar status
+    }
+    OBSERVATIONS {
+        uuid id PK
+        uuid acquisition_run_id FK
+        uuid process_id FK
+        varchar quality
+        timestamptz observed_at
+    }
+    COMPARISONS {
+        uuid id PK
+        uuid old_observation_id FK
+        uuid new_observation_id FK
+        varchar rule_version
+    }
+    TECHNICAL_CHANGES {
+        uuid id PK
+        uuid comparison_id FK
+        varchar action_key
+        varchar change_kind
+    }
+    NOVELTIES {
+        uuid id PK
+        uuid tracking_id FK
+        uuid change_id FK
+        uuid evaluation_id FK
+        varchar status
+    }

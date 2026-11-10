@@ -1,0 +1,42 @@
+flowchart TB
+  ROUTER["API / DTO / Depends\nTransporte HTTP"]
+  subgraph APP["Contenedor FastAPI - componentes de aplicación"]
+    ID["Identity\nPrincipal / permisos"]
+    CLIENT["Clients\nEstado del cliente"]
+    TRACK["Tracking\nProceso y seguimiento"]
+    OBS["Observations\nAdquisición demo / cobertura"]
+    CMP["Comparison\nCambio técnico"]
+    NOV["Novelties\nElegibilidad y revisión"]
+    PUB["Publications\nVersiones y autorización"]
+    PORT["Portal\nLectura externa autorizada"]
+    AUD["Audit\nTrazabilidad"]
+    UOW["Shared infrastructure\nUoW / DB session / config"]
+  end
+  PG[("PostgreSQL")]
+  ROUTER --> ID
+  ROUTER --> TRACK
+  ROUTER --> OBS
+  ROUTER --> NOV
+  ROUTER --> PUB
+  ROUTER --> PORT
+  CLIENT --> TRACK
+  OBS --> CMP
+  TRACK --> CMP
+  CMP --> NOV
+  TRACK --> NOV
+  NOV --> PUB
+  ID -. "política / principal" .-> PORT
+  CLIENT -. "estado" .-> PORT
+  TRACK -. "pertenencia / estado" .-> PORT
+  PUB -. "versión vigente" .-> PORT
+  UOW --> PG
+  TRACK -.-> UOW
+  OBS -.-> UOW
+  CMP -.-> UOW
+  NOV -.-> UOW
+  PUB -.-> UOW
+  AUD -.-> UOW
+  classDef biz fill:#e0f2fe,stroke:#0284c7,color:#075985;
+  classDef infra fill:#f1f5f9,stroke:#64748b,color:#334155;
+  class ID,CLIENT,TRACK,OBS,CMP,NOV,PUB,PORT biz;
+  class UOW,PG infra;

@@ -1,0 +1,10 @@
+stateDiagram-v2
+    [*] --> PendienteRevisionOperativa: Crear novedad elegible
+    PendienteRevisionOperativa --> EnRevisionOperativa: Analista inicia revisión
+    EnRevisionOperativa --> PendienteRevisionJuridica: Escala con evidencia
+    PendienteRevisionJuridica --> TratamientoDefinido: Abogado valora y registra evidencia
+    TratamientoDefinido --> EnSeguimiento: Define acciones posteriores (opcional demo)
+    EnRevisionOperativa --> Descartada: Descarte justificado (fuera del guion)
+    note right of TratamientoDefinido
+      No implica publicada ni cerrada
+    end note

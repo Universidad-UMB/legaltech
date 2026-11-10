@@ -1,0 +1,19 @@
+﻿criterio,escenario,contextos,casos_uso,reglas_dominio,referencias_RF_V1,incremento,evidencia_futura,estado
+PROTO-AT-01,Registro proceso judicial,CTX-SEG,UC-F0-02,DOM-R01;DOM-R24,011;014,INC-01,Proceso con radicado sintético estable; alta/repetición consistente,Diseñado - NO ejecutado
+PROTO-AT-02,Alta y activación A,CTX-SEG;CTX-CLI,UC-F0-02,DOM-R01;DOM-R03,015;016;021,INC-01,Seguimiento A asociado correctamente a cliente y proceso,Diseñado - NO ejecutado
+PROTO-AT-03,Baseline OBS-001 sin novedad,CTX-SEG;CTX-OBS,UC-F0-03,DOM-R06;DOM-R07,023;040;046,INC-02,Baseline OBS-001 y contador novedad=0,Diseñado - NO ejecutado
+PROTO-AT-04,Diferencia ACT-06,CTX-CMP;CTX-OBS,UC-F0-04,DOM-R08;DOM-R09,047;048;049;050;052,INC-03,Un cambio técnico INCORPORACION ACT-06 con evidencia,Diseñado - NO ejecutado
+PROTO-AT-05,Idempotencia cambios,CTX-CMP,UC-F0-04,DOM-R10,053,INC-03,Reejecución de par: 1 mismo cambio lógico,Diseñado - NO ejecutado
+PROTO-AT-06,Idempotencia novedades,CTX-NOV;CTX-SEG,UC-F0-04,DOM-R11;DOM-R12,054;055;056;058,INC-03;INC-04,Reentrega no duplica NOV-A-001; B no hereda novedad,Diseñado - NO ejecutado
+PROTO-AT-07,Revisión operativa,CTX-NOV,UC-F0-05,DOM-R13;DOM-R24,059;062;065,INC-04,Estado + actor analista + evidencia y escalamiento,Diseñado - NO ejecutado
+PROTO-AT-08,Valoración jurídica,CTX-NOV,UC-F0-05,DOM-R13;DOM-R14,065;066;068;069,INC-04,Actor abogado y texto ficticio/evidencia vinculados,Diseñado - NO ejecutado
+PROTO-AT-09,Borrador no visible,CTX-PUB;CTX-PORTAL,UC-F0-06,DOM-R15;DOM-R18;DOM-R23,120;121;122;125;134,INC-05,Denegación externa Borrador,Diseñado - NO ejecutado
+PROTO-AT-10,Aprobar con persona distinta,CTX-PUB;CTX-ID,UC-F0-06,DOM-R16;DOM-R17,126;127;128,INC-05,personaId distinto; Autorizada no publicada,Diseñado - NO ejecutado
+PROTO-AT-11,Publicación local disponible,CTX-PUB;CTX-PORTAL,UC-F0-06;UC-F0-07,DOM-R17;DOM-R18;DOM-R19,129;134;145,INC-05,API protegida A devuelve versión vigente Publicada,Diseñado - NO ejecutado
+PROTO-AT-12,B denegado al ID A,CTX-ID;CTX-PORTAL,UC-F0-01;UC-F0-07,DOM-R01;DOM-R02;DOM-R03,009;010;134;145,INC-06,Rechazo directo sin filtración del cuerpo A,Diseñado - NO ejecutado
+PROTO-AT-13,Suspensión A bloquea acceso,CTX-CLI;CTX-ID;CTX-PORTAL,UC-F0-07,DOM-R04;DOM-R19,008;010;134;145,INC-06,"Lectura A denegada, estado publicación interno preservado",Diseñado - NO ejecutado
+PROTO-AT-14,Finalización bloquea portal A,CTX-SEG;CTX-ID;CTX-PORTAL,UC-F0-02;UC-F0-07,DOM-R05;DOM-R19,021;010;134;145,INC-06,"A denegado, historial interno presente",Diseñado - NO ejecutado
+PROTO-AT-15,Fallo no significa sin cambios,CTX-OBS;CTX-PORTAL,UC-F0-03;UC-F0-07,DOM-R07;DOM-R22,032;042;143;146,INC-02;INC-06,"CoberturaNoVerificada visible, sin falso SinCambios",Diseñado - NO ejecutado
+PROTO-AT-16,Reiniciar demo,CTX-AUD;CTX-SEG;CTX-OBS,UC-F0-08,DOM-R21,PROTO-001 §6;§9,INC-07,Semilla y estados reproducibles en entorno local,Diseñado - NO ejecutado
+PROTO-AT-17,Cuenta A sin SEG-A-002,CTX-ID;CTX-PORTAL,UC-F0-01;UC-F0-07,DOM-R02;DOM-R03,009;010;138;140;142,INC-06,Denegación con cuenta del mismo cliente sin ámbito específico,Diseñado - NO ejecutado
+PROTO-AT-18,Modificar versión exige aprobación,CTX-PUB,UC-F0-06,DOM-R15;DOM-R16;DOM-R18,126;127;128,INC-05,Creación de versión nueva no hereda autorización,Diseñado - NO ejecutado

@@ -1,0 +1,9 @@
+{
+  "fixture_code": "INCOMPLETE",
+  "process_ref": "PROC-001",
+  "run_status": "INCOMPLETE",
+  "coverage": "PARTIAL_NOT_COMPARABLE",
+  "quality": "INCOMPLETE",
+  "observation": null,
+  "reason": "Ejemplo sintético de cobertura insuficiente"
+}

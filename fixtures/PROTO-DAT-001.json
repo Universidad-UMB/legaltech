@@ -1,0 +1,302 @@
+{
+  "schema_version": "1.0",
+  "fixture_id": "DEMO-LEGALTECH-001",
+  "synthetic_only": true,
+  "namespace_uuid_for_demo_only": "34de60aa-6e11-469b-859d-8eaeb3038120",
+  "clock": {
+    "fixture_base_time_utc": "2026-10-17T12:00:00Z",
+    "rule": "UTC estable para pruebas; ahora real únicamente para expiración de sesiones si se prueba tiempo real"
+  },
+  "bootstrap_phases": {
+    "phase_1_local_bootstrap": "Personas, clientes Alfa/Beta, cuentas y roles; ningún proceso, seguimiento, observación ni publicación",
+    "phase_2_api": "Admin crea procesos y seguimientos con API y activa según los casos AT-01/02",
+    "phase_3_local_scopes": "CLI idempotente asigna ámbitos internos y externos sobre seguimientos ya creados",
+    "phase_4_api_scenario": "Cargar adquisiciones, comparar, evaluar, revisar, publicar y verificar portal"
+  },
+  "credential_policy": {
+    "secret_source": "DEMO_SEED_PASSWORD o entrada segura local al ejecutar seed",
+    "password_in_repository": false,
+    "token_in_repository": false,
+    "deterministic_usernames_only": true
+  },
+  "clients": [
+    {
+      "alias": "alfa",
+      "id": "6542d471-970f-5d63-ace1-8a85fc8edb63",
+      "client_code": "alfa",
+      "name": "Cliente ficticio Alfa",
+      "status": "ACTIVE"
+    },
+    {
+      "alias": "beta",
+      "id": "b8ec47eb-c875-51bf-a219-833bf3427b37",
+      "client_code": "beta",
+      "name": "Cliente ficticio Beta",
+      "status": "ACTIVE"
+    }
+  ],
+  "processes": [
+    {
+      "alias": "PROC-001",
+      "id": "529916cc-bd84-55c9-879c-974f5513b395",
+      "radicado": "00000000000000000000001",
+      "description": "Proceso ficticio 1"
+    },
+    {
+      "alias": "PROC-002",
+      "id": "fbc57293-1516-5e26-85d9-0733bb56c25a",
+      "radicado": "00000000000000000000002",
+      "description": "Proceso ficticio 2; únicamente prueba de ámbito A2"
+    }
+  ],
+  "trackings": [
+    {
+      "alias": "SEG-A-001",
+      "id": "67ab60f5-212f-5683-84a4-c7ed17256c04",
+      "client": "alfa",
+      "process": "PROC-001",
+      "target_status": "ACTIVE"
+    },
+    {
+      "alias": "SEG-B-001",
+      "id": "6dde4531-4760-5adf-ae50-d0ad8419728d",
+      "client": "beta",
+      "process": "PROC-001",
+      "target_status": "ACTIVE"
+    },
+    {
+      "alias": "SEG-A-002",
+      "id": "ea4af333-afc4-5358-9705-cafc99d2b94a",
+      "client": "alfa",
+      "process": "PROC-002",
+      "target_status": "ACTIVE"
+    }
+  ],
+  "persons": [
+    {
+      "alias": "P-ADMIN",
+      "id": "31bc9fd7-8a2a-5174-b780-707ec733aa78",
+      "display_name": "Admin de demostración"
+    },
+    {
+      "alias": "P-ANALYST",
+      "id": "f501e115-725d-5b66-a667-61d762222e52",
+      "display_name": "Analista de demostración"
+    },
+    {
+      "alias": "P-LAWYER",
+      "id": "06d03309-835e-5396-b5d8-585466c01551",
+      "display_name": "Abogado de demostración"
+    },
+    {
+      "alias": "P-PREP",
+      "id": "d3e1ff02-3102-5c73-b3bc-8eaaf35bf4b9",
+      "display_name": "Preparador de demostración"
+    },
+    {
+      "alias": "P-COORD",
+      "id": "bfb3dc2f-0934-5ecf-9cea-e6c917479fe2",
+      "display_name": "Coordinador independiente"
+    },
+    {
+      "alias": "P-EXA",
+      "id": "af2e1ea5-4d60-5557-91cb-8cfa3ecf3e34",
+      "display_name": "Lector externo Alfa"
+    },
+    {
+      "alias": "P-EXB",
+      "id": "ca2e0de5-bb31-597d-9583-04a058c761a4",
+      "display_name": "Lector externo Beta"
+    }
+  ],
+  "accounts": [
+    {
+      "username": "admin.demo",
+      "id": "84b8a798-c959-57dc-aaa9-b18c99d72903",
+      "person_ref": "P-ADMIN",
+      "kind": "INTERNAL",
+      "client_ref": null,
+      "roles": [
+        "ADMIN"
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "username": "analyst.demo",
+      "id": "7052cf6d-6992-5176-9715-7adf2abb811a",
+      "person_ref": "P-ANALYST",
+      "kind": "INTERNAL",
+      "client_ref": null,
+      "roles": [
+        "ANALYST"
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "username": "lawyer.demo",
+      "id": "a2152589-8b42-5633-8b60-a59832a651be",
+      "person_ref": "P-LAWYER",
+      "kind": "INTERNAL",
+      "client_ref": null,
+      "roles": [
+        "LAWYER"
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "username": "preparer.demo",
+      "id": "73a3acca-96cc-5822-8334-ea6c8898564a",
+      "person_ref": "P-PREP",
+      "kind": "INTERNAL",
+      "client_ref": null,
+      "roles": [
+        "PREPARER"
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "username": "preparer.alt.demo",
+      "id": "4d8e2b2e-56c2-538a-a020-714302fca711",
+      "person_ref": "P-PREP",
+      "kind": "INTERNAL",
+      "client_ref": null,
+      "roles": [
+        "COORDINATOR"
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "username": "coordinator.demo",
+      "id": "525f30f0-0bfe-54a5-96e9-d3b5d6d5b907",
+      "person_ref": "P-COORD",
+      "kind": "INTERNAL",
+      "client_ref": null,
+      "roles": [
+        "COORDINATOR"
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "username": "reader.alfa.demo",
+      "id": "e9ae437a-34ac-5c2d-a5ce-e57f5179d055",
+      "person_ref": "P-EXA",
+      "kind": "EXTERNAL",
+      "client_ref": "alfa",
+      "roles": [
+        "EXTERNAL_READER"
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "username": "reader.beta.demo",
+      "id": "74ce696e-1850-5c4f-967b-0f205b7be120",
+      "person_ref": "P-EXB",
+      "kind": "EXTERNAL",
+      "client_ref": "beta",
+      "roles": [
+        "EXTERNAL_READER"
+      ],
+      "status": "ACTIVE"
+    }
+  ],
+  "internal_tracking_assignments": [
+    {
+      "username": "admin.demo",
+      "trackings": [
+        "SEG-A-001",
+        "SEG-B-001",
+        "SEG-A-002"
+      ]
+    },
+    {
+      "username": "analyst.demo",
+      "trackings": [
+        "SEG-A-001",
+        "SEG-B-001"
+      ]
+    },
+    {
+      "username": "lawyer.demo",
+      "trackings": [
+        "SEG-A-001"
+      ]
+    },
+    {
+      "username": "preparer.demo",
+      "trackings": [
+        "SEG-A-001"
+      ]
+    },
+    {
+      "username": "preparer.alt.demo",
+      "trackings": [
+        "SEG-A-001"
+      ]
+    },
+    {
+      "username": "coordinator.demo",
+      "trackings": [
+        "SEG-A-001"
+      ]
+    }
+  ],
+  "external_tracking_scopes": [
+    {
+      "username": "reader.alfa.demo",
+      "trackings": [
+        "SEG-A-001"
+      ]
+    },
+    {
+      "username": "reader.beta.demo",
+      "trackings": [
+        "SEG-B-001"
+      ]
+    }
+  ],
+  "acquisition_fixtures": [
+    {
+      "fixture_code": "OBS_001",
+      "observation_ref": "OBS-001",
+      "process_ref": "PROC-001",
+      "observed_at": "2026-10-15T12:00:00Z",
+      "status": "SUCCESS",
+      "quality": "COMPARABLE",
+      "path": "adquisiciones/OBS_001.json"
+    },
+    {
+      "fixture_code": "OBS_002",
+      "observation_ref": "OBS-002",
+      "process_ref": "PROC-001",
+      "observed_at": "2026-10-16T12:00:00Z",
+      "status": "SUCCESS",
+      "quality": "COMPARABLE",
+      "path": "adquisiciones/OBS_002.json"
+    },
+    {
+      "fixture_code": "FAILED",
+      "process_ref": "PROC-001",
+      "status": "FAILED",
+      "path": "adquisiciones/FAILED.json"
+    },
+    {
+      "fixture_code": "INCOMPLETE",
+      "process_ref": "PROC-001",
+      "status": "INCOMPLETE",
+      "quality": "INCOMPLETE",
+      "path": "adquisiciones/INCOMPLETE.json"
+    }
+  ],
+  "scenario_order": [
+    "Inicializar clientes y cuentas por bootstrap; registrar procesos y seguimientos mediante API",
+    "Autenticar y obtener token para cada persona",
+    "Adquirir OBS_001 y adoptar como primera baseline de SEG-A-001",
+    "Adquirir OBS_002; comparar OBS_001→OBS_002; evaluar en SEG-A-001; adoptar OBS_002 tras evaluar",
+    "Adoptar OBS_002 como primera baseline independiente en SEG-B-001",
+    "Revisar NOV-A-001 como analyst y lawyer; crear versión con preparer.demo",
+    "Rechazar aprobación desde preparer.alt.demo: misma persona P-PREP",
+    "Autorizar con coordinator.demo; publicar localmente; verificar A/B/A2",
+    "Suspender Alfa y verificar bloqueo sin cambiar estado publicado; reactivar; finalizar A y comprobar cierre externo",
+    "Ejecutar pruebas de reinicio local de base efímera de demostración"
+  ]
+}

@@ -1,0 +1,9 @@
+stateDiagram-v2
+    [*] --> Pendiente: Crear seguimiento
+    Pendiente --> Activo: Activar autorizado
+    Activo --> Finalizado: Finalizar con motivo
+    note right of Finalizado
+      Histórico interno conservado
+      Portal externo bloqueado por DEC-04
+      No retirar publicación automáticamente
+    end note

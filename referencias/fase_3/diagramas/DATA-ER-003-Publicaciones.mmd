@@ -1,0 +1,41 @@
+erDiagram
+    TRACKINGS ||--o{ PUBLICATIONS : has
+    PUBLICATIONS ||--o{ PUBLICATION_VERSIONS : versions
+    PUBLICATIONS o|--o| PUBLICATION_VERSIONS : current_pointer
+    PUBLICATION_VERSIONS ||--o{ PUBLICATION_PREPARERS : frozen_authors
+    PUBLICATION_VERSIONS ||--o| PUBLICATION_APPROVALS : adjudicated
+    PUBLICATION_VERSIONS ||--o{ PUBLICATION_VERSION_NOVELTIES : includes
+    NOVELTIES ||--o{ PUBLICATION_VERSION_NOVELTIES : communicated_in
+    PERSONS ||--o{ PUBLICATION_PREPARERS : preparer
+    PERSONS ||--o{ PUBLICATION_APPROVALS : approver
+    TRACKINGS ||--o{ NOVELTIES : treatment
+    PUBLICATION_VERSIONS ||--o{ STATE_TRANSITIONS : records
+
+    PUBLICATIONS {
+        uuid id PK
+        uuid tracking_id FK
+        uuid client_id FK
+        uuid current_version_id FK
+    }
+    PUBLICATION_VERSIONS {
+        uuid id PK
+        uuid publication_id FK
+        int version_number
+        uuid recipient_tracking_id FK
+        uuid recipient_client_id FK
+        varchar status
+        text content_text
+        varchar content_sha256
+        timestamptz frozen_at
+    }
+    PUBLICATION_PREPARERS {
+        uuid version_id PK,FK
+        uuid person_id PK,FK
+        uuid account_id FK
+    }
+    PUBLICATION_APPROVALS {
+        uuid id PK
+        uuid version_id FK
+        uuid approver_person_id FK
+        varchar verdict
+    }

@@ -1,0 +1,28 @@
+sequenceDiagram
+    actor P as Preparador
+    actor C as Coordinador
+    participant API as FastAPI
+    participant APP as Caso de uso
+    participant DB as PostgreSQL
+    P->>API: POST /publication-versions/{id}/submit
+    API->>APP: SubmitVersion(principal, id)
+    APP->>DB: Bloquear versión y verificar revisión jurídica
+    APP->>DB: Congelar snapshot + transición
+    DB-->>API: PENDING_APPROVAL
+    C->>API: POST /publication-versions/{id}/decision
+    API->>APP: Decide(principal, id, APPROVE)
+    APP->>DB: Verificar cuenta/persona != preparadores
+    APP->>DB: Registrar aprobación de hash + transición
+    DB-->>API: APPROVED
+    C->>API: POST /publication-versions/{id}/publish
+    API->>APP: Publish(principal, id)
+    APP->>DB: BEGIN + FOR UPDATE
+    APP->>DB: Validar approved, hash, mismo cliente/seguimiento
+    APP->>DB: UPDATE versión PUBLISHED + current_version_id + auditoría
+    alt Commit correcto
+        DB-->>API: COMMIT, PUBLISHED
+        API-->>C: 200 PUBLISHED
+    else Error de commit
+        DB-->>API: ROLLBACK
+        API-->>C: Error sanitizado, no publicación
+    end

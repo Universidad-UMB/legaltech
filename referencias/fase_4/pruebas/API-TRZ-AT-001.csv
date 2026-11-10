@@ -1,0 +1,19 @@
+﻿criterio_aceptacion,operationsIds,resultado_esperado,estado
+PROTO-AT-01,createProcess,Radicado de 23 dígitos y proceso persistido,DISEÑADA_NO_EJECUTADA
+PROTO-AT-02,createTracking;activateTracking,Dos seguimientos y activación de A,DISEÑADA_NO_EJECUTADA
+PROTO-AT-03,createAcquisition;adoptObservation,OBS-001 baseline A sin novedad,DISEÑADA_NO_EJECUTADA
+PROTO-AT-04,createAcquisition;compareObservations,OBS-002 añade ACT-06,DISEÑADA_NO_EJECUTADA
+PROTO-AT-05,compareObservations,Mismo par y regla no duplican cambio,DISEÑADA_NO_EJECUTADA
+PROTO-AT-06,adoptObservation;evaluateComparison,A crea novedad una vez y B no retroactiva,DISEÑADA_NO_EJECUTADA
+PROTO-AT-07,startOperativeReview;escalateNovelty,Revisión operativa de analista asignado,DISEÑADA_NO_EJECUTADA
+PROTO-AT-08,recordLegalReview,Valoración jurídica humana de abogado asignado,DISEÑADA_NO_EJECUTADA
+PROTO-AT-09,createPublication;portalCurrentPublication,Borrador no visible externamente,DISEÑADA_NO_EJECUTADA
+PROTO-AT-10,submitPublicationVersion;decidePublicationVersion,Aprobación por persona distinta,DISEÑADA_NO_EJECUTADA
+PROTO-AT-11,publishPublicationVersion;portalCurrentPublication,Publicación vigente tras commit,DISEÑADA_NO_EJECUTADA
+PROTO-AT-12,portalCurrentPublication,B jamás obtiene A incluso por UUID,DISEÑADA_NO_EJECUTADA
+PROTO-AT-13,suspendClient;portalCurrentPublication,Suspensión bloquea portal sin borrar datos,DISEÑADA_NO_EJECUTADA
+PROTO-AT-14,finishTracking;portalCurrentPublication,"Finalización bloquea portal, preserva historia",DISEÑADA_NO_EJECUTADA
+PROTO-AT-15,createAcquisition;getAcquisition,Fallo no es no-cambios,DISEÑADA_NO_EJECUTADA
+PROTO-AT-16,healthz;login,Seed/reinicio demo por CLI + API,DISEÑADA_NO_EJECUTADA
+PROTO-AT-17,portalCurrentPublication,Cuenta A sin ámbito A2 recibe 404,DISEÑADA_NO_EJECUTADA
+PROTO-AT-18,createPublicationVersion;submitPublicationVersion;decidePublicationVersion,Nueva versión exige nueva aprobación,DISEÑADA_NO_EJECUTADA

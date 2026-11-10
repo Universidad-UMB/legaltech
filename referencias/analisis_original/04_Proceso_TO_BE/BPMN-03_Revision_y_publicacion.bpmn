@@ -1,0 +1,307 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Defs_NOV" targetNamespace="https://grado.legaltech.edu/tobe/0.2" exporter="TOBE-001 Engineering Analysis" exporterVersion="0.2">
+  <bpmn:process id="Process_NOV" name="SP-04/05/06 Revisión de novedades y publicación" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_NOV">
+      <bpmn:lane id="Lane_NOV_Analista" name="Analista">
+        <bpmn:flowNodeRef>NOV_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>NOV_inspect</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>NOV_confirmed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>NOV_discard</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>NOV_enddiscard</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>NOV_legal</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>NOV_objective</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_NOV_Sistema" name="Sistema">
+        <bpmn:flowNodeRef>NOV_doc</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>NOV_extract</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>NOV_processed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>NOV_failure</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>NOV_publish</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>NOV_end</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_NOV_Abogado" name="Abogado">
+        <bpmn:flowNodeRef>NOV_review</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>NOV_sufficient</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>NOV_pending</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>NOV_endpending</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>NOV_prepare</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_NOV_Coordinador" name="Coordinador">
+        <bpmn:flowNodeRef>NOV_authorize</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>NOV_approved</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>NOV_reject</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>NOV_endreject</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="NOV_start" name="Novedad pendiente de revisión"/>
+    <bpmn:userTask id="NOV_inspect" name="Revisar evidencia y cambio"/>
+    <bpmn:exclusiveGateway id="NOV_confirmed" name="¿Cambio confirmado?"/>
+    <bpmn:userTask id="NOV_discard" name="Descartar con justificación"/>
+    <bpmn:endEvent id="NOV_enddiscard" name="Novedad descartada"/>
+    <bpmn:exclusiveGateway id="NOV_legal" name="¿Requiere revisión jurídica?"/>
+    <bpmn:userTask id="NOV_objective" name="Preparar contenido objetivo"/>
+    <bpmn:exclusiveGateway id="NOV_doc" name="¿Hay documento procesable?"/>
+    <bpmn:serviceTask id="NOV_extract" name="Extraer texto y proponer campos si autorizado">
+      <bpmn:documentation>El resultado LLM no sustituye validación jurídica. Ante falla se continúa manualmente.</bpmn:documentation>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="NOV_processed" name="¿Extracción utilizable?"/>
+    <bpmn:serviceTask id="NOV_failure" name="Conservar error y habilitar revisión manual"/>
+    <bpmn:userTask id="NOV_review" name="Revisar y validar evidencia"/>
+    <bpmn:exclusiveGateway id="NOV_sufficient" name="¿Revisión concluida?"/>
+    <bpmn:userTask id="NOV_pending" name="Solicitar información adicional"/>
+    <bpmn:endEvent id="NOV_endpending" name="Revisión pendiente"/>
+    <bpmn:userTask id="NOV_prepare" name="Preparar propuesta comunicable"/>
+    <bpmn:userTask id="NOV_authorize" name="Evaluar autorización de publicación"/>
+    <bpmn:exclusiveGateway id="NOV_approved" name="¿Publicación autorizada?"/>
+    <bpmn:userTask id="NOV_reject" name="Registrar rechazo y motivo"/>
+    <bpmn:endEvent id="NOV_endreject" name="Publicación no autorizada"/>
+    <bpmn:serviceTask id="NOV_publish" name="Versionar y publicar para cliente"/>
+    <bpmn:endEvent id="NOV_end" name="Publicado para destinatarios autorizados"/>
+    <bpmn:sequenceFlow id="NOV_Flow_01" sourceRef="NOV_start" targetRef="NOV_inspect"/>
+    <bpmn:sequenceFlow id="NOV_Flow_02" sourceRef="NOV_inspect" targetRef="NOV_confirmed"/>
+    <bpmn:sequenceFlow id="NOV_Flow_03" sourceRef="NOV_confirmed" targetRef="NOV_discard" name="No"/>
+    <bpmn:sequenceFlow id="NOV_Flow_04" sourceRef="NOV_discard" targetRef="NOV_enddiscard"/>
+    <bpmn:sequenceFlow id="NOV_Flow_05" sourceRef="NOV_confirmed" targetRef="NOV_legal" name="Sí"/>
+    <bpmn:sequenceFlow id="NOV_Flow_06" sourceRef="NOV_legal" targetRef="NOV_objective" name="No"/>
+    <bpmn:sequenceFlow id="NOV_Flow_07" sourceRef="NOV_objective" targetRef="NOV_authorize"/>
+    <bpmn:sequenceFlow id="NOV_Flow_08" sourceRef="NOV_legal" targetRef="NOV_doc" name="Sí"/>
+    <bpmn:sequenceFlow id="NOV_Flow_09" sourceRef="NOV_doc" targetRef="NOV_extract" name="Sí"/>
+    <bpmn:sequenceFlow id="NOV_Flow_10" sourceRef="NOV_doc" targetRef="NOV_review" name="No"/>
+    <bpmn:sequenceFlow id="NOV_Flow_11" sourceRef="NOV_extract" targetRef="NOV_processed"/>
+    <bpmn:sequenceFlow id="NOV_Flow_12" sourceRef="NOV_processed" targetRef="NOV_review" name="Sí"/>
+    <bpmn:sequenceFlow id="NOV_Flow_13" sourceRef="NOV_processed" targetRef="NOV_failure" name="No"/>
+    <bpmn:sequenceFlow id="NOV_Flow_14" sourceRef="NOV_failure" targetRef="NOV_review"/>
+    <bpmn:sequenceFlow id="NOV_Flow_15" sourceRef="NOV_review" targetRef="NOV_sufficient"/>
+    <bpmn:sequenceFlow id="NOV_Flow_16" sourceRef="NOV_sufficient" targetRef="NOV_pending" name="No"/>
+    <bpmn:sequenceFlow id="NOV_Flow_17" sourceRef="NOV_pending" targetRef="NOV_endpending"/>
+    <bpmn:sequenceFlow id="NOV_Flow_18" sourceRef="NOV_sufficient" targetRef="NOV_prepare" name="Sí"/>
+    <bpmn:sequenceFlow id="NOV_Flow_19" sourceRef="NOV_prepare" targetRef="NOV_authorize"/>
+    <bpmn:sequenceFlow id="NOV_Flow_20" sourceRef="NOV_authorize" targetRef="NOV_approved"/>
+    <bpmn:sequenceFlow id="NOV_Flow_21" sourceRef="NOV_approved" targetRef="NOV_reject" name="No"/>
+    <bpmn:sequenceFlow id="NOV_Flow_22" sourceRef="NOV_reject" targetRef="NOV_endreject"/>
+    <bpmn:sequenceFlow id="NOV_Flow_23" sourceRef="NOV_approved" targetRef="NOV_publish" name="Sí"/>
+    <bpmn:sequenceFlow id="NOV_Flow_24" sourceRef="NOV_publish" targetRef="NOV_end"/>
+  </bpmn:process>
+  <bpmn:collaboration id="Collaboration_NOV">
+    <bpmn:participant id="Participant_Operator_NOV" name="Organización jurídica operadora" processRef="Process_NOV"/>
+    <bpmn:participant id="Participant_NOV_Proveedor_LLM" name="Proveedor LLM"/>
+    <bpmn:messageFlow id="NOV_Message_01" name="Solicitud procesamiento autorizado" sourceRef="NOV_extract" targetRef="Participant_NOV_Proveedor_LLM"/>
+    <bpmn:messageFlow id="NOV_Message_02" name="Propuesta estructurada" sourceRef="Participant_NOV_Proveedor_LLM" targetRef="NOV_extract"/>
+  </bpmn:collaboration>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_NOV" name="SP-04/05/06 Revisión de novedades y publicación">
+    <bpmndi:BPMNPlane id="BPMNPlane_NOV" bpmnElement="Collaboration_NOV">
+      <bpmndi:BPMNShape id="DI_Participant_Operator_NOV" bpmnElement="Participant_Operator_NOV" isHorizontal="true">
+        <dc:Bounds x="70" y="70" width="3680" height="672"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_Lane_NOV_Analista" bpmnElement="Lane_NOV_Analista" isHorizontal="true">
+        <dc:Bounds x="108" y="70" width="3642" height="168"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_Lane_NOV_Sistema" bpmnElement="Lane_NOV_Sistema" isHorizontal="true">
+        <dc:Bounds x="108" y="238" width="3642" height="168"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_Lane_NOV_Abogado" bpmnElement="Lane_NOV_Abogado" isHorizontal="true">
+        <dc:Bounds x="108" y="406" width="3642" height="168"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_Lane_NOV_Coordinador" bpmnElement="Lane_NOV_Coordinador" isHorizontal="true">
+        <dc:Bounds x="108" y="574" width="3642" height="168"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_Participant_NOV_Proveedor_LLM" bpmnElement="Participant_NOV_Proveedor_LLM" isHorizontal="true">
+        <dc:Bounds x="70" y="777" width="3680" height="105"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_NOV_start" bpmnElement="NOV_start">
+        <dc:Bounds x="180" y="136" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_NOV_inspect" bpmnElement="NOV_inspect">
+        <dc:Bounds x="410" y="114" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_NOV_confirmed" bpmnElement="NOV_confirmed">
+        <dc:Bounds x="640" y="128" width="52" height="52"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_NOV_discard" bpmnElement="NOV_discard">
+        <dc:Bounds x="870" y="72" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_NOV_enddiscard" bpmnElement="NOV_enddiscard">
+        <dc:Bounds x="1100" y="94" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_NOV_legal" bpmnElement="NOV_legal">
+        <dc:Bounds x="870" y="170" width="52" height="52"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_NOV_objective" bpmnElement="NOV_objective">
+        <dc:Bounds x="1100" y="156" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_NOV_doc" bpmnElement="NOV_doc">
+        <dc:Bounds x="1100" y="296" width="52" height="52"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_NOV_extract" bpmnElement="NOV_extract">
+        <dc:Bounds x="1330" y="282" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_NOV_processed" bpmnElement="NOV_processed">
+        <dc:Bounds x="1560" y="296" width="52" height="52"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_NOV_failure" bpmnElement="NOV_failure">
+        <dc:Bounds x="1790" y="282" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_NOV_review" bpmnElement="NOV_review">
+        <dc:Bounds x="2020" y="450" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_NOV_sufficient" bpmnElement="NOV_sufficient">
+        <dc:Bounds x="2250" y="464" width="52" height="52"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_NOV_pending" bpmnElement="NOV_pending">
+        <dc:Bounds x="2480" y="408" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_NOV_endpending" bpmnElement="NOV_endpending">
+        <dc:Bounds x="2710" y="472" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_NOV_prepare" bpmnElement="NOV_prepare">
+        <dc:Bounds x="2480" y="492" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_NOV_authorize" bpmnElement="NOV_authorize">
+        <dc:Bounds x="2710" y="618" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_NOV_approved" bpmnElement="NOV_approved">
+        <dc:Bounds x="2940" y="632" width="52" height="52"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_NOV_reject" bpmnElement="NOV_reject">
+        <dc:Bounds x="3170" y="618" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_NOV_endreject" bpmnElement="NOV_endreject">
+        <dc:Bounds x="3400" y="640" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_NOV_publish" bpmnElement="NOV_publish">
+        <dc:Bounds x="3170" y="282" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_NOV_end" bpmnElement="NOV_end">
+        <dc:Bounds x="3400" y="304" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_01" bpmnElement="NOV_Flow_01">
+        <di:waypoint x="216" y="154"/>
+        <di:waypoint x="410" y="154"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_02" bpmnElement="NOV_Flow_02">
+        <di:waypoint x="584" y="154"/>
+        <di:waypoint x="640" y="154"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_03" bpmnElement="NOV_Flow_03">
+        <di:waypoint x="692" y="154"/>
+        <di:waypoint x="781" y="154"/>
+        <di:waypoint x="781" y="112"/>
+        <di:waypoint x="870" y="112"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_04" bpmnElement="NOV_Flow_04">
+        <di:waypoint x="1044" y="112"/>
+        <di:waypoint x="1100" y="112"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_05" bpmnElement="NOV_Flow_05">
+        <di:waypoint x="692" y="154"/>
+        <di:waypoint x="781" y="154"/>
+        <di:waypoint x="781" y="196"/>
+        <di:waypoint x="870" y="196"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_06" bpmnElement="NOV_Flow_06">
+        <di:waypoint x="922" y="196"/>
+        <di:waypoint x="1100" y="196"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_07" bpmnElement="NOV_Flow_07">
+        <di:waypoint x="1274" y="196"/>
+        <di:waypoint x="1992" y="196"/>
+        <di:waypoint x="1992" y="658"/>
+        <di:waypoint x="2710" y="658"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_08" bpmnElement="NOV_Flow_08">
+        <di:waypoint x="922" y="196"/>
+        <di:waypoint x="1011" y="196"/>
+        <di:waypoint x="1011" y="322"/>
+        <di:waypoint x="1100" y="322"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_09" bpmnElement="NOV_Flow_09">
+        <di:waypoint x="1152" y="322"/>
+        <di:waypoint x="1330" y="322"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_10" bpmnElement="NOV_Flow_10">
+        <di:waypoint x="1152" y="322"/>
+        <di:waypoint x="1586" y="322"/>
+        <di:waypoint x="1586" y="490"/>
+        <di:waypoint x="2020" y="490"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_11" bpmnElement="NOV_Flow_11">
+        <di:waypoint x="1504" y="322"/>
+        <di:waypoint x="1560" y="322"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_12" bpmnElement="NOV_Flow_12">
+        <di:waypoint x="1612" y="322"/>
+        <di:waypoint x="1816" y="322"/>
+        <di:waypoint x="1816" y="490"/>
+        <di:waypoint x="2020" y="490"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_13" bpmnElement="NOV_Flow_13">
+        <di:waypoint x="1612" y="322"/>
+        <di:waypoint x="1790" y="322"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_14" bpmnElement="NOV_Flow_14">
+        <di:waypoint x="1964" y="322"/>
+        <di:waypoint x="1992" y="322"/>
+        <di:waypoint x="1992" y="490"/>
+        <di:waypoint x="2020" y="490"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_15" bpmnElement="NOV_Flow_15">
+        <di:waypoint x="2194" y="490"/>
+        <di:waypoint x="2250" y="490"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_16" bpmnElement="NOV_Flow_16">
+        <di:waypoint x="2302" y="490"/>
+        <di:waypoint x="2391" y="490"/>
+        <di:waypoint x="2391" y="448"/>
+        <di:waypoint x="2480" y="448"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_17" bpmnElement="NOV_Flow_17">
+        <di:waypoint x="2654" y="448"/>
+        <di:waypoint x="2682" y="448"/>
+        <di:waypoint x="2682" y="490"/>
+        <di:waypoint x="2710" y="490"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_18" bpmnElement="NOV_Flow_18">
+        <di:waypoint x="2302" y="490"/>
+        <di:waypoint x="2391" y="490"/>
+        <di:waypoint x="2391" y="532"/>
+        <di:waypoint x="2480" y="532"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_19" bpmnElement="NOV_Flow_19">
+        <di:waypoint x="2654" y="532"/>
+        <di:waypoint x="2682" y="532"/>
+        <di:waypoint x="2682" y="658"/>
+        <di:waypoint x="2710" y="658"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_20" bpmnElement="NOV_Flow_20">
+        <di:waypoint x="2884" y="658"/>
+        <di:waypoint x="2940" y="658"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_21" bpmnElement="NOV_Flow_21">
+        <di:waypoint x="2992" y="658"/>
+        <di:waypoint x="3170" y="658"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_22" bpmnElement="NOV_Flow_22">
+        <di:waypoint x="3344" y="658"/>
+        <di:waypoint x="3400" y="658"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_23" bpmnElement="NOV_Flow_23">
+        <di:waypoint x="2992" y="658"/>
+        <di:waypoint x="3081" y="658"/>
+        <di:waypoint x="3081" y="322"/>
+        <di:waypoint x="3170" y="322"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Flow_24" bpmnElement="NOV_Flow_24">
+        <di:waypoint x="3344" y="322"/>
+        <di:waypoint x="3400" y="322"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Message_01" bpmnElement="NOV_Message_01">
+        <di:waypoint x="1417" y="322"/>
+        <di:waypoint x="1910" y="830"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_NOV_Message_02" bpmnElement="NOV_Message_02">
+        <di:waypoint x="1910" y="830"/>
+        <di:waypoint x="1417" y="322"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

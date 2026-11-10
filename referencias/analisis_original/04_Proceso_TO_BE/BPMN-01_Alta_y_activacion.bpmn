@@ -1,0 +1,273 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Defs_ALTA" targetNamespace="https://grado.legaltech.edu/tobe/0.2" exporter="TOBE-001 Engineering Analysis" exporterVersion="0.2">
+  <bpmn:process id="Process_ALTA" name="SP-01 Alta de clientes y seguimientos" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_ALTA">
+      <bpmn:lane id="Lane_ALTA_Coordinador" name="Coordinador">
+        <bpmn:flowNodeRef>ALTA_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ALTA_client</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ALTA_new</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ALTA_reuse</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ALTA_create</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ALTA_assign</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ALTA_accounts</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_ALTA_Administrador" name="Administrador">
+        <bpmn:flowNodeRef>ALTA_provision</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_ALTA_Analista" name="Analista">
+        <bpmn:flowNodeRef>ALTA_rad</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ALTA_rect</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_ALTA_Sistema" name="Sistema">
+        <bpmn:flowNodeRef>ALTA_validate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ALTA_gwvalid</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ALTA_exists</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ALTA_enddup</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ALTA_enabled</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ALTA_active</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ALTA_pending</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ALTA_end</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="ALTA_start" name="Solicitud de seguimiento">
+      <bpmn:documentation>La solicitud de una cartera proviene de un interesado legitimado.</bpmn:documentation>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="ALTA_client" name="¿Cliente existe?"/>
+    <bpmn:userTask id="ALTA_new" name="Registrar cliente"/>
+    <bpmn:userTask id="ALTA_reuse" name="Seleccionar cliente"/>
+    <bpmn:userTask id="ALTA_rad" name="Registrar radicado"/>
+    <bpmn:serviceTask id="ALTA_validate" name="Validar identidad y formato">
+      <bpmn:documentation>Valida radicado según reglas y contexto judicial; no inventa un proceso inexistente.</bpmn:documentation>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="ALTA_gwvalid" name="¿Datos válidos?"/>
+    <bpmn:userTask id="ALTA_rect" name="Corregir registro"/>
+    <bpmn:exclusiveGateway id="ALTA_exists" name="¿Seguimiento ya existe?"/>
+    <bpmn:endEvent id="ALTA_enddup" name="Informar seguimiento existente"/>
+    <bpmn:userTask id="ALTA_create" name="Crear relación cliente-proceso"/>
+    <bpmn:userTask id="ALTA_assign" name="Asignar responsable y política"/>
+    <bpmn:exclusiveGateway id="ALTA_accounts" name="¿Se necesitan cuentas externas?"/>
+    <bpmn:userTask id="ALTA_provision" name="Habilitar cuentas autorizadas"/>
+    <bpmn:exclusiveGateway id="ALTA_enabled" name="¿Fuente habilitada?"/>
+    <bpmn:serviceTask id="ALTA_active" name="Activar seguimiento"/>
+    <bpmn:serviceTask id="ALTA_pending" name="Registrar pendiente de adquisición"/>
+    <bpmn:endEvent id="ALTA_end" name="Seguimiento preparado"/>
+    <bpmn:sequenceFlow id="ALTA_Flow_01" sourceRef="ALTA_start" targetRef="ALTA_client"/>
+    <bpmn:sequenceFlow id="ALTA_Flow_02" sourceRef="ALTA_client" targetRef="ALTA_new" name="No"/>
+    <bpmn:sequenceFlow id="ALTA_Flow_03" sourceRef="ALTA_client" targetRef="ALTA_reuse" name="Sí"/>
+    <bpmn:sequenceFlow id="ALTA_Flow_04" sourceRef="ALTA_new" targetRef="ALTA_rad"/>
+    <bpmn:sequenceFlow id="ALTA_Flow_05" sourceRef="ALTA_reuse" targetRef="ALTA_rad"/>
+    <bpmn:sequenceFlow id="ALTA_Flow_06" sourceRef="ALTA_rad" targetRef="ALTA_validate"/>
+    <bpmn:sequenceFlow id="ALTA_Flow_07" sourceRef="ALTA_validate" targetRef="ALTA_gwvalid"/>
+    <bpmn:sequenceFlow id="ALTA_Flow_08" sourceRef="ALTA_gwvalid" targetRef="ALTA_rect" name="No"/>
+    <bpmn:sequenceFlow id="ALTA_Flow_09" sourceRef="ALTA_rect" targetRef="ALTA_rad"/>
+    <bpmn:sequenceFlow id="ALTA_Flow_10" sourceRef="ALTA_gwvalid" targetRef="ALTA_exists" name="Sí"/>
+    <bpmn:sequenceFlow id="ALTA_Flow_11" sourceRef="ALTA_exists" targetRef="ALTA_enddup" name="Sí"/>
+    <bpmn:sequenceFlow id="ALTA_Flow_12" sourceRef="ALTA_exists" targetRef="ALTA_create" name="No"/>
+    <bpmn:sequenceFlow id="ALTA_Flow_13" sourceRef="ALTA_create" targetRef="ALTA_assign"/>
+    <bpmn:sequenceFlow id="ALTA_Flow_14" sourceRef="ALTA_assign" targetRef="ALTA_accounts"/>
+    <bpmn:sequenceFlow id="ALTA_Flow_15" sourceRef="ALTA_accounts" targetRef="ALTA_provision" name="Sí"/>
+    <bpmn:sequenceFlow id="ALTA_Flow_16" sourceRef="ALTA_provision" targetRef="ALTA_enabled"/>
+    <bpmn:sequenceFlow id="ALTA_Flow_17" sourceRef="ALTA_accounts" targetRef="ALTA_enabled" name="No"/>
+    <bpmn:sequenceFlow id="ALTA_Flow_18" sourceRef="ALTA_enabled" targetRef="ALTA_active" name="Sí"/>
+    <bpmn:sequenceFlow id="ALTA_Flow_19" sourceRef="ALTA_enabled" targetRef="ALTA_pending" name="No"/>
+    <bpmn:sequenceFlow id="ALTA_Flow_20" sourceRef="ALTA_active" targetRef="ALTA_end"/>
+    <bpmn:sequenceFlow id="ALTA_Flow_21" sourceRef="ALTA_pending" targetRef="ALTA_end"/>
+  </bpmn:process>
+  <bpmn:collaboration id="Collaboration_ALTA">
+    <bpmn:participant id="Participant_Operator_ALTA" name="Organización jurídica operadora" processRef="Process_ALTA"/>
+    <bpmn:participant id="Participant_ALTA_Cliente_externo" name="Cliente externo"/>
+    <bpmn:messageFlow id="ALTA_Message_01" name="Solicitud de vigilancia" sourceRef="Participant_ALTA_Cliente_externo" targetRef="ALTA_start"/>
+  </bpmn:collaboration>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_ALTA" name="SP-01 Alta de clientes y seguimientos">
+    <bpmndi:BPMNPlane id="BPMNPlane_ALTA" bpmnElement="Collaboration_ALTA">
+      <bpmndi:BPMNShape id="DI_Participant_Operator_ALTA" bpmnElement="Participant_Operator_ALTA" isHorizontal="true">
+        <dc:Bounds x="70" y="70" width="3680" height="672"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_Lane_ALTA_Coordinador" bpmnElement="Lane_ALTA_Coordinador" isHorizontal="true">
+        <dc:Bounds x="108" y="70" width="3642" height="168"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_Lane_ALTA_Administrador" bpmnElement="Lane_ALTA_Administrador" isHorizontal="true">
+        <dc:Bounds x="108" y="238" width="3642" height="168"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_Lane_ALTA_Analista" bpmnElement="Lane_ALTA_Analista" isHorizontal="true">
+        <dc:Bounds x="108" y="406" width="3642" height="168"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_Lane_ALTA_Sistema" bpmnElement="Lane_ALTA_Sistema" isHorizontal="true">
+        <dc:Bounds x="108" y="574" width="3642" height="168"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_Participant_ALTA_Cliente_externo" bpmnElement="Participant_ALTA_Cliente_externo" isHorizontal="true">
+        <dc:Bounds x="70" y="777" width="3680" height="105"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_ALTA_start" bpmnElement="ALTA_start">
+        <dc:Bounds x="180" y="136" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_ALTA_client" bpmnElement="ALTA_client">
+        <dc:Bounds x="410" y="128" width="52" height="52"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_ALTA_new" bpmnElement="ALTA_new">
+        <dc:Bounds x="640" y="72" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_ALTA_reuse" bpmnElement="ALTA_reuse">
+        <dc:Bounds x="640" y="156" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_ALTA_rad" bpmnElement="ALTA_rad">
+        <dc:Bounds x="870" y="450" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_ALTA_validate" bpmnElement="ALTA_validate">
+        <dc:Bounds x="1100" y="618" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_ALTA_gwvalid" bpmnElement="ALTA_gwvalid">
+        <dc:Bounds x="1330" y="632" width="52" height="52"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_ALTA_rect" bpmnElement="ALTA_rect">
+        <dc:Bounds x="1560" y="450" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_ALTA_exists" bpmnElement="ALTA_exists">
+        <dc:Bounds x="1790" y="632" width="52" height="52"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_ALTA_enddup" bpmnElement="ALTA_enddup">
+        <dc:Bounds x="2020" y="640" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_ALTA_create" bpmnElement="ALTA_create">
+        <dc:Bounds x="2020" y="114" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_ALTA_assign" bpmnElement="ALTA_assign">
+        <dc:Bounds x="2250" y="114" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_ALTA_accounts" bpmnElement="ALTA_accounts">
+        <dc:Bounds x="2480" y="128" width="52" height="52"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_ALTA_provision" bpmnElement="ALTA_provision">
+        <dc:Bounds x="2710" y="282" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_ALTA_enabled" bpmnElement="ALTA_enabled">
+        <dc:Bounds x="2940" y="632" width="52" height="52"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_ALTA_active" bpmnElement="ALTA_active">
+        <dc:Bounds x="3170" y="576" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_ALTA_pending" bpmnElement="ALTA_pending">
+        <dc:Bounds x="3170" y="660" width="174" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DI_ALTA_end" bpmnElement="ALTA_end">
+        <dc:Bounds x="3400" y="640" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="DI_ALTA_Flow_01" bpmnElement="ALTA_Flow_01">
+        <di:waypoint x="216" y="154"/>
+        <di:waypoint x="410" y="154"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_ALTA_Flow_02" bpmnElement="ALTA_Flow_02">
+        <di:waypoint x="462" y="154"/>
+        <di:waypoint x="551" y="154"/>
+        <di:waypoint x="551" y="112"/>
+        <di:waypoint x="640" y="112"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_ALTA_Flow_03" bpmnElement="ALTA_Flow_03">
+        <di:waypoint x="462" y="154"/>
+        <di:waypoint x="551" y="154"/>
+        <di:waypoint x="551" y="196"/>
+        <di:waypoint x="640" y="196"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_ALTA_Flow_04" bpmnElement="ALTA_Flow_04">
+        <di:waypoint x="814" y="112"/>
+        <di:waypoint x="842" y="112"/>
+        <di:waypoint x="842" y="490"/>
+        <di:waypoint x="870" y="490"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_ALTA_Flow_05" bpmnElement="ALTA_Flow_05">
+        <di:waypoint x="814" y="196"/>
+        <di:waypoint x="842" y="196"/>
+        <di:waypoint x="842" y="490"/>
+        <di:waypoint x="870" y="490"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_ALTA_Flow_06" bpmnElement="ALTA_Flow_06">
+        <di:waypoint x="1044" y="490"/>
+        <di:waypoint x="1072" y="490"/>
+        <di:waypoint x="1072" y="658"/>
+        <di:waypoint x="1100" y="658"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_ALTA_Flow_07" bpmnElement="ALTA_Flow_07">
+        <di:waypoint x="1274" y="658"/>
+        <di:waypoint x="1330" y="658"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_ALTA_Flow_08" bpmnElement="ALTA_Flow_08">
+        <di:waypoint x="1382" y="658"/>
+        <di:waypoint x="1471" y="658"/>
+        <di:waypoint x="1471" y="490"/>
+        <di:waypoint x="1560" y="490"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_ALTA_Flow_09" bpmnElement="ALTA_Flow_09">
+        <di:waypoint x="1647" y="530"/>
+        <di:waypoint x="957" y="530"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_ALTA_Flow_10" bpmnElement="ALTA_Flow_10">
+        <di:waypoint x="1382" y="658"/>
+        <di:waypoint x="1790" y="658"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_ALTA_Flow_11" bpmnElement="ALTA_Flow_11">
+        <di:waypoint x="1842" y="658"/>
+        <di:waypoint x="2020" y="658"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_ALTA_Flow_12" bpmnElement="ALTA_Flow_12">
+        <di:waypoint x="1842" y="658"/>
+        <di:waypoint x="1931" y="658"/>
+        <di:waypoint x="1931" y="154"/>
+        <di:waypoint x="2020" y="154"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_ALTA_Flow_13" bpmnElement="ALTA_Flow_13">
+        <di:waypoint x="2194" y="154"/>
+        <di:waypoint x="2250" y="154"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_ALTA_Flow_14" bpmnElement="ALTA_Flow_14">
+        <di:waypoint x="2424" y="154"/>
+        <di:waypoint x="2480" y="154"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_ALTA_Flow_15" bpmnElement="ALTA_Flow_15">
+        <di:waypoint x="2532" y="154"/>
+        <di:waypoint x="2621" y="154"/>
+        <di:waypoint x="2621" y="322"/>
+        <di:waypoint x="2710" y="322"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_ALTA_Flow_16" bpmnElement="ALTA_Flow_16">
+        <di:waypoint x="2884" y="322"/>
+        <di:waypoint x="2912" y="322"/>
+        <di:waypoint x="2912" y="658"/>
+        <di:waypoint x="2940" y="658"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_ALTA_Flow_17" bpmnElement="ALTA_Flow_17">
+        <di:waypoint x="2532" y="154"/>
+        <di:waypoint x="2736" y="154"/>
+        <di:waypoint x="2736" y="658"/>
+        <di:waypoint x="2940" y="658"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_ALTA_Flow_18" bpmnElement="ALTA_Flow_18">
+        <di:waypoint x="2992" y="658"/>
+        <di:waypoint x="3081" y="658"/>
+        <di:waypoint x="3081" y="616"/>
+        <di:waypoint x="3170" y="616"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_ALTA_Flow_19" bpmnElement="ALTA_Flow_19">
+        <di:waypoint x="2992" y="658"/>
+        <di:waypoint x="3081" y="658"/>
+        <di:waypoint x="3081" y="700"/>
+        <di:waypoint x="3170" y="700"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_ALTA_Flow_20" bpmnElement="ALTA_Flow_20">
+        <di:waypoint x="3344" y="616"/>
+        <di:waypoint x="3372" y="616"/>
+        <di:waypoint x="3372" y="658"/>
+        <di:waypoint x="3400" y="658"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_ALTA_Flow_21" bpmnElement="ALTA_Flow_21">
+        <di:waypoint x="3344" y="700"/>
+        <di:waypoint x="3372" y="700"/>
+        <di:waypoint x="3372" y="658"/>
+        <di:waypoint x="3400" y="658"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DI_ALTA_Message_01" bpmnElement="ALTA_Message_01">
+        <di:waypoint x="1910" y="830"/>
+        <di:waypoint x="198" y="154"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

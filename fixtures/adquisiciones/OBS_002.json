@@ -1,0 +1,40 @@
+{
+  "fixture_code": "OBS_002",
+  "process_ref": "PROC-001",
+  "observation_ref": "OBS-002",
+  "observed_at": "2026-10-16T12:00:00Z",
+  "quality": "COMPARABLE",
+  "coverage": "COMPLETE_FOR_FIXTURE",
+  "actions": [
+    {
+      "action_key": "ACT-01",
+      "occurred_on": "2026-10-11",
+      "description": "Actuación procesal sintética 01 (sin valor jurídico)"
+    },
+    {
+      "action_key": "ACT-02",
+      "occurred_on": "2026-10-12",
+      "description": "Actuación procesal sintética 02 (sin valor jurídico)"
+    },
+    {
+      "action_key": "ACT-03",
+      "occurred_on": "2026-10-13",
+      "description": "Actuación procesal sintética 03 (sin valor jurídico)"
+    },
+    {
+      "action_key": "ACT-04",
+      "occurred_on": "2026-10-14",
+      "description": "Actuación procesal sintética 04 (sin valor jurídico)"
+    },
+    {
+      "action_key": "ACT-05",
+      "occurred_on": "2026-10-15",
+      "description": "Actuación procesal sintética 05 (sin valor jurídico)"
+    },
+    {
+      "action_key": "ACT-06",
+      "occurred_on": "2026-10-16",
+      "description": "Actuación procesal sintética 06 (sin valor jurídico)"
+    }
+  ]
+}

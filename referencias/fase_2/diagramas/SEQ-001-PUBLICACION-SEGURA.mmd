@@ -1,0 +1,33 @@
+sequenceDiagram
+  autonumber
+  actor Preparador
+  actor Coordinador
+  actor ExternoA
+  participant API as FastAPI / aplicación
+  participant Auth as Política de autorización
+  participant DB as PostgreSQL
+  Preparador->>API: Preparar versión textual de NOV-A-001
+  API->>Auth: Verificar rol, asignación y revisión jurídica
+  Auth-->>API: Permitido
+  API->>DB: Transacción: snapshot v1 y preparadores personaId
+  DB-->>API: Versión en Borrador
+  Preparador->>API: Someter versión v1
+  API->>DB: Transacción: congelar v1 Pendiente
+  Coordinador->>API: Solicitar aprobación v1
+  API->>Auth: Validar persona distinta y permisos
+  Auth-->>API: Permitido
+  API->>DB: Transacción: registrar aprobación exacta v1
+  DB-->>API: Autorizada
+  Coordinador->>API: Publicar versión v1
+  API->>DB: Transacción: estado Publicada + puntero vigente
+  DB-->>API: Commit exitoso (o rollback íntegro)
+  ExternoA->>API: Consultar publicación de SEG-A-001
+  API->>Auth: Cuenta, cliente, ámbito, seguimiento y estado actual
+  Auth-->>API: Permitido / denegado
+  alt Autorizado y versión vigente Publicada
+    API->>DB: Leer solo contenido autorizado
+    DB-->>API: Snapshot textual v1
+    API-->>ExternoA: Contenido autorizado
+  else Sin ámbito / suspendido / finalizado
+    API-->>ExternoA: Denegación sin contenido
+  end

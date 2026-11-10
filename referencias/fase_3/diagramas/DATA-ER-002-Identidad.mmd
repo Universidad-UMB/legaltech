@@ -1,0 +1,57 @@
+erDiagram
+    PERSONS ||--o{ ACCOUNTS : identifies
+    CLIENTS o|--o{ ACCOUNTS : external_only
+    ACCOUNTS ||--o{ ACCOUNT_ROLES : granted
+    ACCOUNTS ||--o{ AUTH_SESSIONS : owns
+    ACCOUNTS o|--o{ AUDIT_EVENTS : action_actor
+    ACCOUNTS ||--o{ INTERNAL_TRACKING_ASSIGNMENTS : staff_assigned
+    ACCOUNTS ||--o{ EXTERNAL_TRACKING_SCOPES : granted
+    CLIENTS ||--o{ TRACKINGS : owns
+    TRACKINGS ||--o{ EXTERNAL_TRACKING_SCOPES : accessible_if_scoped
+    TRACKINGS ||--o{ INTERNAL_TRACKING_ASSIGNMENTS : assigned_staff
+
+    PERSONS {
+        uuid id PK
+        varchar display_name
+    }
+    CLIENTS {
+        uuid id PK
+        varchar client_code UK
+        varchar status
+    }
+    ACCOUNTS {
+        uuid id PK
+        uuid person_id FK
+        uuid client_id FK
+        varchar account_kind
+        varchar username UK
+        varchar status
+    }
+    ACCOUNT_ROLES {
+        uuid account_id PK,FK
+        varchar role_code PK
+    }
+    AUTH_SESSIONS {
+        uuid id PK
+        uuid account_id FK
+        bytea token_digest UK
+        timestamptz expires_at
+    }
+    EXTERNAL_TRACKING_SCOPES {
+        uuid account_id PK,FK
+        uuid client_id FK
+        uuid tracking_id PK,FK
+        varchar permission_code PK
+        timestamptz revoked_at
+    }
+    AUDIT_EVENTS {
+        uuid id PK
+        uuid actor_account_id FK
+        uuid request_id
+        varchar result
+    }
+    INTERNAL_TRACKING_ASSIGNMENTS {
+        uuid account_id PK,FK
+        uuid tracking_id PK,FK
+        timestamptz revoked_at
+    }

@@ -1,0 +1,24 @@
+sequenceDiagram
+  autonumber
+  actor Analista
+  participant API as FastAPI / casos de uso
+  participant OBS as Observaciones DEMO-FIXTURE
+  participant CMP as Comparación técnica
+  participant SEG as Seguimiento y baseline
+  participant NOV as Novedades privadas
+  participant DB as PostgreSQL
+  Analista->>API: Incorporar OBS-001 ACT-01..05
+  API->>OBS: Validar cobertura y procedencia
+  API->>SEG: Adoptar primera baseline de A
+  SEG->>DB: Transacción: baseline A=OBS-001
+  Note over SEG,NOV: No crear novedades por baseline inicial
+  Analista->>API: Incorporar OBS-002 ACT-01..06
+  API->>OBS: Validar instantánea comparable
+  API->>CMP: Comparar OBS-001 contra OBS-002
+  CMP-->>API: Cambio técnico ACT-06
+  API->>NOV: Evaluar elegibilidad de SEG-A-001
+  NOV->>DB: Unicidad seguimiento A + cambio ACT-06
+  DB-->>API: NOV-A-001 (nueva o existente)
+  API->>SEG: Inicializar baseline de B en OBS-002
+  SEG->>DB: Transacción: baseline B=OBS-002
+  Note over SEG,NOV: B sin novedad retrospectiva por ACT-06

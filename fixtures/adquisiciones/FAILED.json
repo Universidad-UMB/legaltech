@@ -1,0 +1,8 @@
+{
+  "fixture_code": "FAILED",
+  "process_ref": "PROC-001",
+  "run_status": "FAILED",
+  "error_code": "DEMO_SOURCE_UNAVAILABLE",
+  "coverage": "NOT_VERIFIED",
+  "observation": null
+}

@@ -1,0 +1,15 @@
+﻿rnf_id,attribute,requirement,evidence_required,status
+RNF-01,Seguridad,El **100%** de operaciones protegidas rechazan token ausente/inválido y aplican permisos por rol y recurso,Matriz de pruebas HTTP 401/403/404 para cada categoría,NOT_EXECUTED
+RNF-02,Aislamiento,Ningún endpoint retorna datos de novedades/publicaciones de otro seguimiento no autorizado,"Pruebas cruzadas A/B y A/A2, incluidas consultas por UUID",NOT_EXECUTED
+RNF-03,Integridad,Duplicados de cambios y novedades se previenen bajo dos transacciones concurrentes,Tests PostgreSQL con conexiones independientes + conteo 1,NOT_EXECUTED
+RNF-04,Consistencia,Publicación no queda visible si falla el commit de estado+puntero+auditoría,Test de fallo inyectado y rollback posterior,NOT_EXECUTED
+RNF-05,Trazabilidad,Todas las 18 pruebas `PROTO-AT` tienen prueba(s) automatizada(s) y evidencia de resultado,"Matriz AT→test, reporte PASA/FALLA/BLOQUEADA",NOT_EXECUTED
+RNF-06,Contratos,Todas las 35 operaciones declaradas tienen respuesta documentada y sin discrepancia material con FastAPI,Validación OpenAPI y comparación con `/openapi.json` generado,NOT_EXECUTED
+RNF-07,Mantenibilidad,"Dominio sin importar FastAPI, SQLAlchemy o componentes externos; controladores sin lógica crítica",Checks estáticos de dependencias y review del repositorio,NOT_EXECUTED
+RNF-08,Reproducibilidad,"Una base local vacía se reconstruye por migraciones y seed idempotente, con datos exclusivamente ficticios","Compose, Alembic upgrade, seed, AT-16; guía reproducible",NOT_EXECUTED
+RNF-09,Seguridad de secretos,"Ningún token, contraseña en claro, hash o string de conexión real aparece en logs de aplicación y repositorio","Escaneo automático, prueba de logging y revisión de configuración",NOT_EXECUTED
+RNF-10,Observabilidad,Toda petición HTTP protegida ofrece `X-Request-ID` y eventos críticos son correlacionables,Pruebas de cabeceras y eventos sanitizados,NOT_EXECUTED
+RNF-11,Recuperación lógica,Un fallo de adquisición incompleta/fallida nunca modifica la baseline ni se muestra como NO_CHANGES,"Pruebas API/DB sobre FAILED, INCOMPLETE, NOT_COMPARABLE",NOT_EXECUTED
+RNF-12,Evolucionabilidad,"Fixture intercambiable detrás del puerto de fuentes, sin cambiar casos de uso de comparación",Test con adaptador alternativo en memoria y fixture fijo,NOT_EXECUTED
+RNF-13,Confiabilidad local,Reiniciar el proceso FastAPI sin reinicializar volúmenes conserva información persistida,Prueba funcional tras reinicio y consulta autorizada,NOT_EXECUTED
+RNF-14,Accesibilidad API,"Contratos consumibles desde Swagger o cliente HTTP, incluidos ejemplos de errores y restricciones",OpenAPI validado y pruebas de integración,NOT_EXECUTED

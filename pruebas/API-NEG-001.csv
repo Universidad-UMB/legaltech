@@ -1,0 +1,37 @@
+﻿id,scenario,expected,status
+API-N01,Sin Authorization en lectura protegida,401 sin datos,NOT_EXECUTED
+API-N02,"Bearer inválido, revocado, expirado",401 genérico,NOT_EXECUTED
+API-N03,Contraseña/usuario erróneo,401 genérico; no enumerar,NOT_EXECUTED
+API-N04,Ráfaga login > límite configurado,"429, sin detalles de cuentas",NOT_EXECUTED
+API-N05,Cuenta externa llama endpoint interno,403 sin datos de recursos,NOT_EXECUTED
+API-N06,Analista no asignado llama API de novedad A,404 sin cambio,NOT_EXECUTED
+API-N07,"Usuario con rol correcto, sin scope de A2",404 mismo cuerpo que inexistente,NOT_EXECUTED
+API-N08,B conoce UUID de publicación A,404 sin nombre de A ni contenido,NOT_EXECUTED
+API-N09,Alfa suspendido consulta con token expedido antes,"404, historial intacto",NOT_EXECUTED
+API-N10,Seguimiento A finalizado consulta con token válido,"404, historial intacto",NOT_EXECUTED
+API-N11,External intenta enviar `client_id` o `actor_id` no permitido,"422, no lo utiliza",NOT_EXECUTED
+API-N12,Crea proceso con 22/24 dígitos o caracteres,422,NOT_EXECUTED
+API-N13,Segunda adquisición FAILED usada para baseline,"409 o 422 documentado, baseline intacta",NOT_EXECUTED
+API-N14,Repetición de comparación mismo par/regla,"200 mismos IDs, conteo estable",NOT_EXECUTED
+API-N15,Dos evaluaciones concurrentes mismo tracking+comparación,Conteo novedad = 1; solo una creación,NOT_EXECUTED
+API-N16,Abogado intenta iniciar revisión operativa,403,NOT_EXECUTED
+API-N17,Analista intenta registrar valoración jurídica,403,NOT_EXECUTED
+API-N18,"Preparador intenta aprobar, incluso con otra cuenta misma persona","403, aprobación ausente",NOT_EXECUTED
+API-N19,Aprobador intenta publicar DRAFT,"409, ausencia de puntero público",NOT_EXECUTED
+API-N20,Edición de versión sometida por cualquier endpoint,No existe PATCH; nueva versión distinta y no aprobada,NOT_EXECUTED
+API-N21,Versión aprobada modificada de forma forzada en infraestructura,Trigger rechaza; no publicación,NOT_EXECUTED
+API-N22,Error tras marcar versión PUBLISHED pero antes de puntero,Rollback íntegro; portal sin versión parcial,NOT_EXECUTED
+API-N23,"request_key adquisición repetida, misma carga",200 mismo resultado,NOT_EXECUTED
+API-N24,"request_key adquisición repetida, distinta carga",409,NOT_EXECUTED
+API-N25,Inyección JSON de campos extra/desconocidos,422,NOT_EXECUTED
+API-N26,Error no controlado de servidor,500 problem+json sin stack trace,NOT_EXECUTED
+API-N27,GET portal sobre seguimiento autorizado sin publicada,"200 `available=false`, sin contenido",NOT_EXECUTED
+API-N28,FAILED/INCOMPLETE informado en seguimiento autorizado,`coverage_status` real; nunca NO_CHANGES,NOT_EXECUTED
+API-N29,Token de cuenta DISABLED aunque su sesión no caducó,401,NOT_EXECUTED
+API-N30,Request externo con encabezado CORS de origen no permitido,Sin encabezados CORS habilitantes para origen,NOT_EXECUTED
+API-N31,Reinicio del servidor sin borrar volumen PostgreSQL,Persistencia recuperable,NOT_EXECUTED
+API-N32,"Contraseñas, tokens y contenido en logs de error",Nunca presentes,NOT_EXECUTED
+API-N33,Aprobador coincide con preparador secundario de misma versión,403,NOT_EXECUTED
+API-N34,Id válido pero proceso/fuente no correspondiente,"404 o 409 sin efectos, según dominio",NOT_EXECUTED
+API-N35,Solicitudes concurrentes a suspender y publicar,Acceso externo posterior a commit suspensión denegado,NOT_EXECUTED
+API-N36,No hay publicación pero cuenta está en ámbito y activa,"200 `available=false`, no 404 por ausencia de publicada",NOT_EXECUTED

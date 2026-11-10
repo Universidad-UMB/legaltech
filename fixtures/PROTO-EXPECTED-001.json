@@ -1,0 +1,42 @@
+{
+  "fixture_version": "1.0",
+  "acceptance_expectations": {
+    "initial_baseline_A": "OBS-001",
+    "initial_baseline_B": "OBS-002",
+    "baseline_A_novelties": 0,
+    "comparison": [
+      "ACT-06"
+    ],
+    "change_kind": "ADDED",
+    "comparison_change_count": 1,
+    "comparison_repeat_change_count": 1,
+    "novelty_A_code": "NOV-A-001",
+    "novelty_A_count_after_repeats": 1,
+    "novelty_B_count": 0,
+    "published_version": "PUB-A-001/v1",
+    "portal_A_after_publish": {
+      "status": 200,
+      "available": true
+    },
+    "portal_B_for_A": {
+      "status": 404
+    },
+    "portal_A_without_A2_scope": {
+      "status": 404
+    },
+    "portal_A_after_suspend": {
+      "status": 404
+    },
+    "portal_A_after_finish": {
+      "status": 404
+    },
+    "failed_coverage": "NOT_VERIFIED"
+  },
+  "important_semantics": [
+    "Las claves de fixture son alias de datos sintéticos, NO IDs jurídicos reales",
+    "Publicación local via API no envía correo ni genera PDF",
+    "Publicación permanece PUBLISHED internamente tras suspensión/finalización; portal deniega nuevas lecturas",
+    "Logout y desactivación de cuenta deben revocar la capacidad de acceso",
+    "Seguir las políticas candidatas solo una vez aceptadas por los autores"
+  ]
+}

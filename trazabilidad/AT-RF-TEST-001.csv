@@ -1,0 +1,19 @@
+﻿at_id,escenario,rf_v1_referencias,reglas_dominio,incremento_origen,operation_ids,id_prueba_planeada,estado
+PROTO-AT-01,Registro proceso judicial,011;014,DOM-R01;DOM-R24,INC-01,createProcess,tests/acceptance/test_proto_at_01.py::test_escenario,NOT_EXECUTED
+PROTO-AT-02,Alta y activación A,015;016;021,DOM-R01;DOM-R03,INC-01,createTracking;activateTracking,tests/acceptance/test_proto_at_02.py::test_escenario,NOT_EXECUTED
+PROTO-AT-03,Baseline OBS-001 sin novedad,023;040;046,DOM-R06;DOM-R07,INC-02,createAcquisition;adoptObservation,tests/acceptance/test_proto_at_03.py::test_escenario,NOT_EXECUTED
+PROTO-AT-04,Diferencia ACT-06,047;048;049;050;052,DOM-R08;DOM-R09,INC-03,createAcquisition;compareObservations,tests/acceptance/test_proto_at_04.py::test_escenario,NOT_EXECUTED
+PROTO-AT-05,Idempotencia cambios,053,DOM-R10,INC-03,compareObservations,tests/acceptance/test_proto_at_05.py::test_escenario,NOT_EXECUTED
+PROTO-AT-06,Idempotencia novedades,054;055;056;058,DOM-R11;DOM-R12,INC-03;INC-04,adoptObservation;evaluateComparison,tests/acceptance/test_proto_at_06.py::test_escenario,NOT_EXECUTED
+PROTO-AT-07,Revisión operativa,059;062;065,DOM-R13;DOM-R24,INC-04,startOperativeReview;escalateNovelty,tests/acceptance/test_proto_at_07.py::test_escenario,NOT_EXECUTED
+PROTO-AT-08,Valoración jurídica,065;066;068;069,DOM-R13;DOM-R14,INC-04,recordLegalReview,tests/acceptance/test_proto_at_08.py::test_escenario,NOT_EXECUTED
+PROTO-AT-09,Borrador no visible,120;121;122;125;134,DOM-R15;DOM-R18;DOM-R23,INC-05,createPublication;portalCurrentPublication,tests/acceptance/test_proto_at_09.py::test_escenario,NOT_EXECUTED
+PROTO-AT-10,Aprobar con persona distinta,126;127;128,DOM-R16;DOM-R17,INC-05,submitPublicationVersion;decidePublicationVersion,tests/acceptance/test_proto_at_10.py::test_escenario,NOT_EXECUTED
+PROTO-AT-11,Publicación local disponible,129;134;145,DOM-R17;DOM-R18;DOM-R19,INC-05,publishPublicationVersion;portalCurrentPublication,tests/acceptance/test_proto_at_11.py::test_escenario,NOT_EXECUTED
+PROTO-AT-12,B denegado al ID A,009;010;134;145,DOM-R01;DOM-R02;DOM-R03,INC-06,portalCurrentPublication,tests/acceptance/test_proto_at_12.py::test_escenario,NOT_EXECUTED
+PROTO-AT-13,Suspensión A bloquea acceso,008;010;134;145,DOM-R04;DOM-R19,INC-06,suspendClient;portalCurrentPublication,tests/acceptance/test_proto_at_13.py::test_escenario,NOT_EXECUTED
+PROTO-AT-14,Finalización bloquea portal A,021;010;134;145,DOM-R05;DOM-R19,INC-06,finishTracking;portalCurrentPublication,tests/acceptance/test_proto_at_14.py::test_escenario,NOT_EXECUTED
+PROTO-AT-15,Fallo no significa sin cambios,032;042;143;146,DOM-R07;DOM-R22,INC-02;INC-06,createAcquisition;getAcquisition,tests/acceptance/test_proto_at_15.py::test_escenario,NOT_EXECUTED
+PROTO-AT-16,Reiniciar demo,PROTO-001 §6;§9,DOM-R21,INC-07,healthz;login,tests/acceptance/test_proto_at_16.py::test_escenario,NOT_EXECUTED
+PROTO-AT-17,Cuenta A sin SEG-A-002,009;010;138;140;142,DOM-R02;DOM-R03,INC-06,portalCurrentPublication,tests/acceptance/test_proto_at_17.py::test_escenario,NOT_EXECUTED
+PROTO-AT-18,Modificar versión exige aprobación,126;127;128,DOM-R15;DOM-R16;DOM-R18,INC-05,createPublicationVersion;submitPublicationVersion;decidePublicationVersion,tests/acceptance/test_proto_at_18.py::test_escenario,NOT_EXECUTED

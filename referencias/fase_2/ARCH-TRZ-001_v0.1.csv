@@ -1,0 +1,19 @@
+﻿criterio,escenario,reglas_dominio,RF_V1,incremento,modulos_responsables,ADR_relacionados,evidencia_exigida_al_agente,estado_arquitectura,estado_prueba
+PROTO-AT-01,Registro proceso judicial,DOM-R01;DOM-R24,011;014,INC-01,"tracking,identity",ADR-001;ADR-002;ADR-003,Alta consistente; no duplicación indebida,Diseño candidato - no aprobado,No ejecutada
+PROTO-AT-02,Alta y activación A,DOM-R01;DOM-R03,015;016;021,INC-01,"tracking,clients,identity",ADR-002;ADR-003;ADR-004,Seguimiento privado A/B; estado correcto,Diseño candidato - no aprobado,No ejecutada
+PROTO-AT-03,Baseline OBS-001 sin novedad,DOM-R06;DOM-R07,023;040;046,INC-02,"observations,tracking",ADR-003;ADR-005,Baseline A sin novedad; transacción,Diseño candidato - no aprobado,No ejecutada
+PROTO-AT-04,Diferencia ACT-06,DOM-R08;DOM-R09,047;048;049;050;052,INC-03,"observations,comparison",ADR-003;ADR-005,Cambio ACT-06 y procedencia,Diseño candidato - no aprobado,No ejecutada
+PROTO-AT-05,Idempotencia cambios,DOM-R10,053,INC-03,comparison,ADR-003;ADR-005,Reintento recupera mismo cambio lógico,Diseño candidato - no aprobado,No ejecutada
+PROTO-AT-06,Idempotencia novedades,DOM-R11;DOM-R12,054;055;056;058,INC-03;INC-04,"comparison,tracking,novelties",ADR-003;ADR-005,Una novedad A; B sin retrospectiva; concurrencia,Diseño candidato - no aprobado,No ejecutada
+PROTO-AT-07,Revisión operativa,DOM-R13;DOM-R24,059;062;065,INC-04,"novelties,identity,audit",ADR-002;ADR-007,Historial de revisión con analista,Diseño candidato - no aprobado,No ejecutada
+PROTO-AT-08,Valoración jurídica,DOM-R13;DOM-R14,065;066;068;069,INC-04,"novelties,identity,audit",ADR-002;ADR-006;ADR-007,Valoración solo abogado; evidencia,Diseño candidato - no aprobado,No ejecutada
+PROTO-AT-09,Borrador no visible,DOM-R15;DOM-R18;DOM-R23,120;121;122;125;134,INC-05,"publications,portal",ADR-004;ADR-006,Borrador invisibilizado,Diseño candidato - no aprobado,No ejecutada
+PROTO-AT-10,Aprobar con persona distinta,DOM-R16;DOM-R17,126;127;128,INC-05,"publications,identity",ADR-004;ADR-006,Persona distinta de preparadores; Autorizada no visible,Diseño candidato - no aprobado,No ejecutada
+PROTO-AT-11,Publicación local disponible,DOM-R17;DOM-R18;DOM-R19,129;134;145,INC-05,"publications,portal",ADR-003;ADR-004;ADR-006,Publicada y puntero vigente en un commit,Diseño candidato - no aprobado,No ejecutada
+PROTO-AT-12,B denegado al ID A,DOM-R01;DOM-R02;DOM-R03,009;010;134;145,INC-06,"identity,portal,tracking",ADR-002;ADR-004,ID de A rechazado a B sin contenido,Diseño candidato - no aprobado,No ejecutada
+PROTO-AT-13,Suspensión A bloquea acceso,DOM-R04;DOM-R19,008;010;134;145,INC-06,"clients,identity,portal",ADR-004;ADR-006,Denegar suspendido sin retirar versión,Diseño candidato - no aprobado,No ejecutada
+PROTO-AT-14,Finalización bloquea portal A,DOM-R05;DOM-R19,021;010;134;145,INC-06,"tracking,identity,portal",ADR-004;ADR-006,Denegar finalizado; preservar historial,Diseño candidato - no aprobado,No ejecutada
+PROTO-AT-15,Fallo no significa sin cambios,DOM-R07;DOM-R22,032;042;143;146,INC-02;INC-06,"observations,portal",ADR-005;ADR-007,CoberturaNoVerificada; no SinCambios,Diseño candidato - no aprobado,No ejecutada
+PROTO-AT-16,Reiniciar demo,DOM-R21,PROTO-001 §6;§9,INC-07,"identity,tracking,observations,audit",ADR-008,Seed idempotente local y reinicio reproducible,Diseño candidato - no aprobado,No ejecutada
+PROTO-AT-17,Cuenta A sin SEG-A-002,DOM-R02;DOM-R03,009;010;138;140;142,INC-06,"identity,tracking,portal",ADR-004,Cuenta A sin ámbito SEG-A-002 denegada,Diseño candidato - no aprobado,No ejecutada
+PROTO-AT-18,Modificar versión exige aprobación,DOM-R15;DOM-R16;DOM-R18,126;127;128,INC-05,"publications,identity",ADR-006;ADR-003,Nueva versión no hereda autorización,Diseño candidato - no aprobado,No ejecutada

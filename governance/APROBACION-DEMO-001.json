@@ -1,0 +1,17 @@
+{
+  "documento": "APROBACION-DEMO-001",
+  "version": "0.1",
+  "alcance": "Solo prototipo backend con datos ficticios; no ratificación de V1 institucional",
+  "aprobador_autores": "Franklin Castañeda",
+  "fecha_iso": "2026-11-10",
+  "evidencia": "Se comproobo la documentacion",
+  "aceptacion_tecnica": "ACEPTAR",
+  "decisiones": {
+    "DF5-01": "ACEPTAR",
+    "DF5-02": "ACEPTAR",
+    "DF5-03": "ACEPTAR",
+    "DF5-04": "ACEPTAR",
+    "DF5-05": "ACEPTAR",
+    "DF5-06": "ACEPTAR"
+  }
+}

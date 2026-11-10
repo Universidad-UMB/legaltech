@@ -1,0 +1,25 @@
+sequenceDiagram
+    actor E as Cuenta externa
+    participant API as FastAPI
+    participant AUTH as Identidad/Autorización
+    participant DB as PostgreSQL
+    E->>API: GET /portal/trackings/{id}/current-publication
+    API->>AUTH: ResolvePrincipal(token)
+    AUTH->>DB: Consultar sesión y cuenta vigentes
+    DB-->>AUTH: Principal o inválido
+    alt Sesión inválida
+        AUTH-->>API: 401
+        API-->>E: 401 problem+json
+    else Principal válido
+        API->>AUTH: Authorize(READ_PUBLICATIONS, id)
+        AUTH->>DB: Scope + cliente activo + seguimiento activo
+        alt Sin ámbito / fin / suspensión / inexistente
+            DB-->>AUTH: Sin recurso accesible
+            AUTH-->>API: 404 genérico
+            API-->>E: 404 problem+json
+        else Autorizado
+            AUTH->>DB: Versión vigente PUBLISHED (scope filtrado)
+            DB-->>API: Versión o ausencia
+            API-->>E: 200 available true/false
+        end
+    end

@@ -1,0 +1,33 @@
+# Contratos de ejemplo: NO ejecutados. Variables provistas por entorno local seguro.
+@base = http://localhost:8000/api/v1
+@token = {{DEMO_BEARER_TOKEN}}
+@process_id = {{PROCESS_UUID}}
+@tracking_id = {{TRACKING_UUID}}
+@obs1 = {{OBS_001_UUID}}
+@obs2 = {{OBS_002_UUID}}
+@version_id = {{VERSION_UUID}}
+
+### Crear sesión con credenciales de seed local (no incluir contraseñas aquí)
+POST {{base}}/auth/sessions
+Content-Type: application/json
+
+{"username":"{{DEMO_USERNAME}}","password":"{{DEMO_PASSWORD}}"}
+
+### Inspección de identidad efectiva
+GET {{base}}/auth/me
+Authorization: Bearer {{token}}
+
+### Comparar dos observaciones del mismo proceso
+POST {{base}}/internal/comparisons
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"old_observation_id":"{{obs1}}","new_observation_id":"{{obs2}}","rule_version":"demo-v1"}
+
+### Consultar publicación externa (usar cuenta externa autenticada y ámbito)
+GET {{base}}/portal/trackings/{{tracking_id}}/current-publication
+Authorization: Bearer {{token}}
+
+### Publicar versión autorizada (coordinador asignado)
+POST {{base}}/internal/publication-versions/{{version_id}}/publish
+Authorization: Bearer {{token}}
