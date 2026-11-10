@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import os
+import posixpath
 import json
 import re
 import shutil
@@ -25,6 +27,21 @@ LOG_DIR = STATE_DIR / 'logs'
 APPROVAL = ROOT / 'governance' / 'APROBACION-DEMO-001.json'
 TICKETS = [f'INC-{i:02d}' for i in range(8)]
 TOOLS = ('git', 'codex', 'uv', 'docker')
+# Only this branch is authorized for agent-produced commits and remote pushes.
+GIT_BRANCH = 'agent/legaltech-backend'
+GIT_REMOTE = 'origin'
+EXPECTED_REMOTE = 'https://github.com/Universidad-UMB/legaltech.git'
+COMMIT_MESSAGES = {
+    'INC-00': 'chore(inc-00): initialize backend infrastructure',
+    'INC-01': 'feat(inc-01): implement clients and trackings',
+    'INC-02': 'feat(inc-02): implement observations and baseline',
+    'INC-03': 'feat(inc-03): implement deterministic comparison',
+    'INC-04': 'feat(inc-04): implement novelty treatment',
+    'INC-05': 'feat(inc-05): implement versioned publications',
+    'INC-06': 'feat(inc-06): implement portal authorization',
+    'INC-07': 'test(inc-07): complete acceptance and security tests',
+}
+
 
 
 def utc() -> str:
@@ -216,12 +233,150 @@ def verify(ticket: str, attempt: int, timeout: int, approval_sha: str) -> tuple[
     return True,'Todos los gates automatizados verificables superados',results
 
 
+
+class GitGateError(RuntimeError):
+    """Git refused an unsafe state or GitHub publication failed."""
+
+
+def git(*args: str, timeout: int = 90) -> str:
+    # Disable credential prompts: a background task must fail instead of hanging.
+    env = os.environ.copy()
+    env['GIT_TERMINAL_PROMPT'] = '0'
+    env['GCM_INTERACTIVE'] = 'never'
+    result = subprocess.run(
+        ['git', *args], cwd=ROOT, env=env, stdin=subprocess.DEVNULL,
+        capture_output=True, text=True, encoding='utf-8', errors='replace',
+        timeout=timeout, check=False,
+    )
+    if result.returncode != 0:
+        info = (result.stderr or result.stdout).strip()
+        raise GitGateError(f"git {' '.join(args)} falló (exit={result.returncode}): {info[:700]}")
+    return result.stdout.strip()
+
+
+def approved_branch() -> str:
+    return git('branch', '--show-current')
+
+
+def ensure_git_branch() -> None:
+    worktree = Path(git('rev-parse', '--show-toplevel')).resolve()
+    if worktree != ROOT.resolve():
+        raise GitGateError(f'Repositorio inesperado: {worktree}')
+    remote = git('remote', 'get-url', GIT_REMOTE).rstrip('/')
+    if remote != EXPECTED_REMOTE.rstrip('/'):
+        raise GitGateError(f'Remoto no autorizado: {remote}')
+    current = approved_branch()
+    if current == GIT_BRANCH:
+        return
+    if current != 'main':
+        raise GitGateError(f'Rama inesperada {current!r}; se exige main o {GIT_BRANCH}')
+    if git('status', '--porcelain', '--untracked-files=no'):
+        raise GitGateError('Hay cambios rastreados en main; guardarlos antes de cambiar de rama')
+    # The user's untracked .nodeterm/ remains untouched.
+    existing = subprocess.run(
+        ['git', 'show-ref', '--verify', '--quiet', f'refs/heads/{GIT_BRANCH}'],
+        cwd=ROOT, stdin=subprocess.DEVNULL, capture_output=True, check=False,
+    )
+    if existing.returncode == 0:
+        git('switch', GIT_BRANCH)
+    elif existing.returncode == 1:
+        git('switch', '-c', GIT_BRANCH)
+    else:
+        raise GitGateError('No se puede inspeccionar la rama del agente')
+    if approved_branch() != GIT_BRANCH:
+        raise GitGateError('No se pudo cambiar a la rama del agente')
+
+
+def valid_artifact_path(path: str) -> bool:
+    norm = path.replace('\\', '/')
+    return norm.startswith('backend/') or norm == 'docs/ENTREGA-FINAL.md'
+
+
+def forbidden_artifact_path(path: str) -> bool:
+    norm = path.replace('\\', '/')
+    parts = posixpath.normpath(norm).split('/')
+    if any(p in {'.venv', '__pycache__', '.pytest_cache', '.mypy_cache',
+                  '.ruff_cache', 'node_modules', '.tox', '.git', '.autopilot'} for p in parts):
+        return True
+    name = parts[-1].lower()
+    if name == '.env' or (name.startswith('.env.') and name not in {'.env.example', '.env.sample', '.env.template'}):
+        return True
+    if name in {'id_rsa', 'id_ed25519', 'credentials.json', 'service-account.json'}:
+        return True
+    return name.endswith(('.pem', '.p12', '.pfx', '.key', '.keystore', '.pyc'))
+
+
+def changed_paths() -> list[str]:
+    tracked = git('diff', '--name-only', '-z', 'HEAD').split('\0')
+    # Include untracked files so new files outside backend cannot hide.
+    untracked = git('ls-files', '--others', '--exclude-standard', '-z').split('\0')
+    return [x for x in (tracked + untracked) if x]
+
+
+def check_git_scope() -> None:
+    if approved_branch() != GIT_BRANCH:
+        raise GitGateError('Prohibido trabajar sobre main u otra rama')
+    unexpected = []
+    for path in changed_paths():
+        if path.startswith(('.nodeterm/', '.autopilot/')):
+            continue
+        if not valid_artifact_path(path) or forbidden_artifact_path(path):
+            unexpected.append(path)
+    if unexpected:
+        raise GitGateError('Cambios fuera del alcance permitido: ' + ', '.join(unexpected[:12]))
+
+
+def commit_verified_ticket(ticket: str) -> str:
+    """Stage a strict allowlist; never stage .nodeterm, .autopilot, or secrets."""
+    check_git_scope()
+    git('add', '-A', '--', 'backend')
+    if (ROOT / 'docs' / 'ENTREGA-FINAL.md').exists():
+        git('add', '-A', '--', 'docs/ENTREGA-FINAL.md')
+    staged = [x for x in git('diff', '--cached', '--name-only', '-z').split('\0') if x]
+    if not staged:
+        raise GitGateError(f'{ticket} pasó pruebas, pero no produjo cambios para commit')
+    invalid = [p for p in staged if not valid_artifact_path(p) or forbidden_artifact_path(p)]
+    if invalid:
+        raise GitGateError('Se detectaron archivos no permitidos en staging: ' + ', '.join(invalid[:12]))
+    git('diff', '--cached', '--check')
+    git('commit', '-m', COMMIT_MESSAGES[ticket], timeout=240)
+    return git('rev-parse', 'HEAD')
+
+
+def push_verified_commit(sha: str) -> None:
+    if approved_branch() != GIT_BRANCH:
+        raise GitGateError('El push fue bloqueado: rama diferente de la autorizada')
+    if git('rev-parse', 'HEAD') != sha:
+        raise GitGateError('El HEAD cambió después del commit; push cancelado')
+    # Explicit destination avoids inheriting Git push.default=matching / main.
+    git('push', '--porcelain', '--set-upstream', GIT_REMOTE,
+        f'HEAD:refs/heads/{GIT_BRANCH}', timeout=300)
+    remote_ref = git('ls-remote', '--heads', GIT_REMOTE,
+                     f'refs/heads/{GIT_BRANCH}', timeout=90)
+    remote_sha = remote_ref.split()[0] if remote_ref else None
+    if remote_sha != sha:
+        raise GitGateError(f'El SHA remoto {remote_sha!r} no coincide con commit {sha}')
+
+
+def finish_published_ticket(state: dict[str, Any], ticket: str) -> None:
+    entry = state['tickets'][ticket]
+    sha = entry.get('commit_sha')
+    if not sha:
+        raise GitGateError(f'{ticket} no tiene commit para publicar')
+    push_verified_commit(sha)
+    entry['status'] = 'DONE'
+    entry['completed_at'] = utc()
+    entry['reason'] = f'Pruebas y push confirmados: {sha[:12]}'
+    entry['remote_branch'] = GIT_BRANCH
+    save_state(state)
+    print(f'{ticket}: DONE, commit {sha[:12]} confirmado en origin/{GIT_BRANCH}', flush=True)
+
 def make_prompt(ticket: str, attempt: int, reason: str) -> str:
     intro=f'''Implementa únicamente {ticket} de forma completa y profesional.
 Lee primero AGENTS.md, AGENT.md, tickets/{ticket}.md, documentación de dominio y arquitectura, contrato OpenAPI y fixtures. Trabaja en backend/.
 Este es el intento {attempt}. El orquestador no preguntará si debe continuar a otro incremento: verificará tus cambios y lo lanzará automáticamente si pasa.
-No edites governance/APROBACION-DEMO-001.json, .autopilot/ ni las pruebas canónicas como atajo. No añadas integraciones reales.
-Debes crear/actualizar tests reales, asegurar uv.lock, DB local PostgreSQL, Alembic, Ruff, mypy y pytest. No aceptes 'terminado' sin pruebas. Evita cambios no autorizados a OpenAPI, no publiques código, no hagas git push, ni toques datos reales.
+No edites governance/APROBACION-DEMO-001.json, .autopilot/, AGENTS.md, orquestación ni pruebas canónicas como atajo. No añadas integraciones reales. Modifica solo backend/ y, en INC-07, docs/ENTREGA-FINAL.md.
+Debes crear/actualizar tests reales, asegurar uv.lock, DB local PostgreSQL, Alembic, Ruff, mypy y pytest. No aceptes 'terminado' sin pruebas. Evita cambios no autorizados a OpenAPI, no ejecutes git add/commit/push (lo hará el orquestador tras verificar), ni toques datos reales. No formules preguntas al operador; documenta bloqueos materiales.
 Al finalizar deja un resumen de archivos y comandos ejecutados con resultados verdaderos; cualquier bloqueo nuevo debe quedar por escrito y sin falsificar el estado.
 '''
     if reason:
@@ -242,11 +397,25 @@ def run_pipeline(args: argparse.Namespace) -> int:
         return 2
     sha = digest(APPROVAL)
     LOG_DIR.mkdir(parents=True,exist_ok=True)
+    try:
+        ensure_git_branch()
+    except (GitGateError, subprocess.TimeoutExpired) as exc:
+        print(f'BLOCKED: preparación Git: {exc}', file=sys.stderr)
+        return 6
     state=read_state()
     for ticket in TICKETS:
         t=state['tickets'][ticket]
         if t['status']=='DONE':
             print(ticket,'ya validado; siguiente')
+            continue
+        # Crash/retry-safe: if a verified commit exists, retry only its push.
+        if t.get('commit_sha'):
+            try:
+                finish_published_ticket(state, ticket)
+            except (GitGateError, subprocess.TimeoutExpired) as exc:
+                t['status']='BLOCKED';t['reason']=f'Push pendiente: {exc}';save_state(state)
+                print(f'BLOCKED: {t["reason"]}', file=sys.stderr)
+                return 6
             continue
         last_reason=t.get('reason','')
         for _ in range(args.max_attempts):
@@ -257,7 +426,11 @@ def run_pipeline(args: argparse.Namespace) -> int:
             print(f'[{utc()}] {ticket} intento {attempt}; iniciando Codex',flush=True)
             output_path=LOG_DIR/f'{ticket}-attempt-{attempt:02d}-final.txt'
             prompt = make_prompt(ticket,attempt,last_reason)
-            cmd=['codex','exec','--sandbox','workspace-write','--ask-for-approval','never','--cd',str(ROOT),'--output-last-message',str(output_path),prompt]
+            sandbox = 'danger-full-access' if args.full_access else 'workspace-write'
+            # --ask-for-approval is a global option on Codex CLI.
+            cmd=[shutil.which('codex') or 'codex', '--ask-for-approval', 'never',
+                 'exec', '--sandbox', sandbox, '--cd', str(ROOT),
+                 '--output-last-message', str(output_path), prompt]
             call_log=LOG_DIR/f'{ticket}-attempt-{attempt:02d}-codex.log'
             ok, msg = run_logged(cmd,ROOT,call_log,args.timeout_seconds)
             results=[]
@@ -273,8 +446,19 @@ def run_pipeline(args: argparse.Namespace) -> int:
                 last_reason=f'Codex {msg}; revisar {call_log.relative_to(ROOT)}'
             t['history'].append({'attempt':attempt,'when':utc(),'passed':ok,'reason':last_reason,'checks':results})
             if ok:
-                t['status']='DONE';t['completed_at']=utc();t['reason']='Gates ejecutados sin error';save_state(state)
-                print(f'{ticket}: DONE, se continúa automáticamente.',flush=True)
+                try:
+                    sha_commit = commit_verified_ticket(ticket)
+                    t['commit_sha'] = sha_commit
+                    t['status'] = 'PUSHING'
+                    t['reason'] = 'Pruebas superadas; commit local creado, push pendiente'
+                    save_state(state)  # Persist before network operation.
+                    finish_published_ticket(state, ticket)
+                except (GitGateError, subprocess.TimeoutExpired) as exc:
+                    t['status'] = 'BLOCKED'
+                    t['reason'] = f'Git: {exc}'
+                    save_state(state)
+                    print(f'BLOCKED: {ticket} {t["reason"]}', file=sys.stderr)
+                    return 6
                 break
             t['status']='BLOCKED';t['reason']=last_reason;save_state(state)
             print(f'{ticket}: fallo de verificación; {last_reason}',file=sys.stderr,flush=True)
@@ -284,7 +468,7 @@ def run_pipeline(args: argparse.Namespace) -> int:
         if t['status']!='DONE':
             print(f'BLOCKED: {ticket} agotó los {args.max_attempts} intentos de esta ejecución; ver logs. Reanudar tras corregir entorno.',file=sys.stderr)
             return 4
-    print('ALL_DONE: INC-00..INC-07 verificados. Revisión humana final pendiente antes de merge o despliegue.')
+    print('ALL_DONE: INC-00..INC-07 verificados y publicados en rama de agente. Merge/despliegue requieren revisión humana.')
     return 0
 
 
@@ -294,6 +478,8 @@ def main() -> int:
     sub.add_parser('doctor'); sub.add_parser('status')
     runner=sub.add_parser('run')
     runner.add_argument('--dry-run',action='store_true')
+    runner.add_argument('--full-access',action='store_true',
+                        help='Codex sin sandbox (solo en máquina/VM aislada). Sin esta opción, workspace-write.')
     runner.add_argument('--max-attempts',type=int,default=3)
     runner.add_argument('--timeout-seconds',type=int,default=3600)
     args=parser.parse_args()
