@@ -27,7 +27,8 @@ LOG_DIR = STATE_DIR / 'logs'
 APPROVAL = ROOT / 'governance' / 'APROBACION-DEMO-001.json'
 TICKETS = [f'INC-{i:02d}' for i in range(8)]
 TOOLS = ('git', 'codex', 'uv', 'docker')
-# Only this branch is authorized for agent-produced commits and remote pushes.
+# The automation may publish only this dedicated agent branch. It must never
+# push to main, merge branches, or deploy.
 GIT_BRANCH = 'agent/legaltech-backend'
 GIT_REMOTE = 'origin'
 EXPECTED_REMOTE = 'https://github.com/Universidad-UMB/legaltech.git'
@@ -289,7 +290,11 @@ def ensure_git_branch() -> None:
 
 def valid_artifact_path(path: str) -> bool:
     norm = path.replace('\\', '/')
-    return norm.startswith('backend/') or norm == 'docs/ENTREGA-FINAL.md'
+    return (
+        norm.startswith('backend/')
+        or norm == 'docs/ENTREGA-FINAL.md'
+        or norm == 'orchestration/autopilot.py'
+    )
 
 
 def forbidden_artifact_path(path: str) -> bool:
@@ -332,6 +337,10 @@ def commit_verified_ticket(ticket: str) -> str:
     git('add', '-A', '--', 'backend')
     if (ROOT / 'docs' / 'ENTREGA-FINAL.md').exists():
         git('add', '-A', '--', 'docs/ENTREGA-FINAL.md')
+    # This file is an operator-authorized orchestration change. Codex prompts
+    # still prohibit agents from editing it.
+    if (ROOT / 'orchestration' / 'autopilot.py').is_file():
+        git('add', '--', 'orchestration/autopilot.py')
     staged = [x for x in git('diff', '--cached', '--name-only', '-z').split('\0') if x]
     if not staged:
         raise GitGateError(f'{ticket} pasó pruebas, pero no produjo cambios para commit')
@@ -370,6 +379,17 @@ def finish_published_ticket(state: dict[str, Any], ticket: str) -> None:
     entry['remote_branch'] = GIT_BRANCH
     save_state(state)
     print(f'{ticket}: DONE, commit {sha[:12]} confirmado en origin/{GIT_BRANCH}', flush=True)
+
+
+def complete_verified_ticket(state: dict[str, Any], ticket: str) -> None:
+    """Commit and publish a ticket only after its gates have passed."""
+    entry = state['tickets'][ticket]
+    sha_commit = commit_verified_ticket(ticket)
+    entry['commit_sha'] = sha_commit
+    entry['status'] = 'PUSHING'
+    entry['reason'] = 'Pruebas superadas; commit local creado, push limitado a rama de agente pendiente'
+    save_state(state)  # Persist before the external publication operation.
+    finish_published_ticket(state, ticket)
 
 def make_prompt(ticket: str, attempt: int, reason: str) -> str:
     intro=f'''Implementa únicamente {ticket} de forma completa y profesional.
@@ -417,6 +437,26 @@ def run_pipeline(args: argparse.Namespace) -> int:
                 print(f'BLOCKED: {t["reason"]}', file=sys.stderr)
                 return 6
             continue
+        # A post-verification Git failure can be remediated without asking Codex
+        # to reimplement the same increment. All gates are run again before any
+        # commit or branch-only push is attempted.
+        if args.resume_verified and t['status'] == 'BLOCKED' and t.get('history') and t['history'][-1].get('passed'):
+            attempt=t['attempts']+1
+            t['attempts']=attempt; t['status']='VERIFYING'; t['started_at']=utc(); save_state(state)
+            ok,last_reason,results=verify(ticket,attempt,args.timeout_seconds,sha)
+            t['history'].append({'attempt':attempt,'when':utc(),'passed':ok,'reason':last_reason,
+                                 'checks':results,'resume_verified':True})
+            if not ok:
+                t['status']='BLOCKED'; t['reason']=last_reason; save_state(state)
+                print(f'{ticket}: revalidación falló; {last_reason}',file=sys.stderr,flush=True)
+                return 4
+            try:
+                complete_verified_ticket(state, ticket)
+            except (GitGateError, subprocess.TimeoutExpired) as exc:
+                t['status']='BLOCKED'; t['reason']=f'Git: {exc}'; save_state(state)
+                print(f'BLOCKED: {ticket} {t["reason"]}', file=sys.stderr)
+                return 6
+            continue
         last_reason=t.get('reason','')
         for _ in range(args.max_attempts):
             if digest(APPROVAL) != sha:
@@ -448,12 +488,7 @@ def run_pipeline(args: argparse.Namespace) -> int:
             t['history'].append({'attempt':attempt,'when':utc(),'passed':ok,'reason':last_reason,'checks':results})
             if ok:
                 try:
-                    sha_commit = commit_verified_ticket(ticket)
-                    t['commit_sha'] = sha_commit
-                    t['status'] = 'PUSHING'
-                    t['reason'] = 'Pruebas superadas; commit local creado, push pendiente'
-                    save_state(state)  # Persist before network operation.
-                    finish_published_ticket(state, ticket)
+                    complete_verified_ticket(state, ticket)
                 except (GitGateError, subprocess.TimeoutExpired) as exc:
                     t['status'] = 'BLOCKED'
                     t['reason'] = f'Git: {exc}'
@@ -483,6 +518,8 @@ def main() -> int:
                         help='Codex sin sandbox (solo en máquina/VM aislada). Sin esta opción, workspace-write.')
     runner.add_argument('--max-attempts',type=int,default=3)
     runner.add_argument('--timeout-seconds',type=int,default=3600)
+    runner.add_argument('--resume-verified',action='store_true',
+                        help='Reejecuta gates de un ticket bloqueado después de gates PASS, sin relanzar Codex.')
     args=parser.parse_args()
     if args.action=='doctor':return 0 if doctor() else 2
     if args.action=='status':show_status(read_state());return 0

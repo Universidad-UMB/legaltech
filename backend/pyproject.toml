@@ -1,0 +1,54 @@
+[project]
+name = "legaltech-backend"
+version = "0.1.0"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "alembic>=1.14,<2",
+    "argon2-cffi>=23.1,<26",
+    "fastapi>=0.115,<1",
+    "psycopg[binary]>=3.2,<4",
+    "pydantic-settings>=2.7,<3",
+    "python-dotenv>=1,<2",
+    "sqlalchemy>=2.0,<3",
+    "uvicorn[standard]>=0.34,<1",
+]
+
+[build-system]
+requires = ["hatchling>=1.26,<2"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.uv]
+package = true
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28,<1",
+    "httpx2>=2.16.0",
+    "mypy>=1.15,<2",
+    "pytest>=8,<10",
+    "pyyaml>=6,<7",
+    "ruff>=0.11,<1",
+    "types-PyYAML>=6,<7",
+]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = ["postgres: requires the isolated LegalTech PostgreSQL test database"]
