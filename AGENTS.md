@@ -19,3 +19,19 @@ Todo software nuevo dentro de `backend/`. Usar `uv` con `uv.lock`, pytest, Ruff 
 
 ## Transición entre tickets
 El agente implementa solamente el ticket que recibe del orquestador. Si falla calidad: diagnosticar y corregir en el siguiente intento conservando el estado del repositorio. Si pasa: cerrar ticket con evidencias. **No esperar confirmación humana entre incrementos ni hacer merge a ramas protegidas**.
+
+### Aislamiento de infraestructura local
+
+El desarrollo del backend LegalTech debe utilizar servicios Docker independientes de otros proyectos existentes en el equipo.
+
+Reglas obligatorias:
+
+- No detener, eliminar, modificar ni reutilizar contenedores, redes, bases de datos o volúmenes de otros proyectos.
+- Utilizar el nombre de proyecto Docker Compose `legaltech-backend`.
+- Evitar publicar FastAPI en el puerto 8000 del host. Utilizar 8001 cuando sea necesario.
+- Configurar las conexiones, migraciones Alembic y pruebas según el entorno donde se ejecuten.
+- Utilizar exclusivamente datos sintéticos de LegalTech.
+- No ejecutar operaciones Docker globales de limpieza.
+- No modificar archivos de configuración ni recursos pertenecientes a otros proyectos.
+- Continuar automáticamente entre incrementos cuando las verificaciones sean satisfactorias.
+- No omitir verificaciones para conseguir que un incremento sea marcado como completado.
