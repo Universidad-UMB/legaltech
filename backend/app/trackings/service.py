@@ -1,8 +1,11 @@
+from datetime import UTC, datetime
+from typing import Literal
 from uuid import UUID, uuid4
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.acquisitions import repository as acquisition_repository
 from app.authorization.domain import ACTIVATION_ROLES
 from app.authorization.service import (
     authorize_internal_account,
@@ -13,6 +16,7 @@ from app.clients.models import Client
 from app.core.errors import ResourceConflict, ResourceNotFound
 from app.identity.domain import Principal
 from app.identity.models import AuditEvent
+from app.novelties import repository as novelty_repository
 from app.trackings import repository
 from app.trackings.domain import ProcessData, TrackingData
 from app.trackings.models import JudicialProcess, Tracking
@@ -220,6 +224,107 @@ class TrackingService:
                 principal=principal,
                 request_id=request_id,
                 event_code="TRACKING_ACTIVATE",
+                reason="resource_not_in_scope",
+            )
+            raise
+        except IntegrityError as exc:
+            raise ResourceConflict from exc
+
+    def adopt_observation(
+        self,
+        session: Session,
+        *,
+        principal: Principal,
+        request_id: UUID,
+        tracking_id: UUID,
+        observation_id: UUID,
+    ) -> tuple[TrackingData, Literal["BASELINE_SET", "ADVANCED", "ALREADY_ADOPTED"]]:
+        authorize_internal_roles(
+            session,
+            principal=principal,
+            request_id=request_id,
+            event_code="TRACKING_ADOPT_OBSERVATION",
+            allowed_roles={"ANALYST"},
+        )
+        try:
+            with session.begin():
+                tracking = repository.tracking_for_assigned_account(
+                    session,
+                    tracking_id=tracking_id,
+                    account_id=principal.account_id,
+                    lock=True,
+                )
+                if tracking is None:
+                    raise ResourceNotFound
+                if tracking.status != "ACTIVE":
+                    raise ResourceConflict
+
+                observation = acquisition_repository.observation_for_tracking(
+                    session,
+                    observation_id=observation_id,
+                    process_id=tracking.process_id,
+                )
+                if observation is None:
+                    raise ResourceNotFound
+                if observation.quality != "COMPARABLE" or observation.sealed_at is None:
+                    raise ResourceConflict
+
+                outcome: Literal["BASELINE_SET", "ADVANCED", "ALREADY_ADOPTED"]
+                if tracking.baseline_observation_id is None:
+                    tracking.baseline_observation_id = observation.id
+                    tracking.last_adopted_observation_id = observation.id
+                    tracking.updated_at = datetime.now(UTC)
+                    outcome = "BASELINE_SET"
+                elif tracking.last_adopted_observation_id == observation.id:
+                    outcome = "ALREADY_ADOPTED"
+                else:
+                    last_observation_id = tracking.last_adopted_observation_id
+                    if last_observation_id is None:
+                        raise ResourceConflict
+                    last_observation = acquisition_repository.observation_for_tracking(
+                        session,
+                        observation_id=last_observation_id,
+                        process_id=tracking.process_id,
+                    )
+                    next_observation = (
+                        acquisition_repository.next_comparable_observation(
+                            session,
+                            process_id=tracking.process_id,
+                            after=last_observation.observed_at,
+                        )
+                        if last_observation is not None
+                        else None
+                    )
+                    if (
+                        next_observation is None
+                        or next_observation.id != observation.id
+                        or not novelty_repository.evaluation_for_observation_pair(
+                            session,
+                            tracking_id=tracking.id,
+                            old_observation_id=last_observation_id,
+                            new_observation_id=observation.id,
+                        )
+                    ):
+                        raise ResourceConflict
+                    tracking.last_adopted_observation_id = observation.id
+                    tracking.updated_at = datetime.now(UTC)
+                    outcome = "ADVANCED"
+
+                self._audit(
+                    session,
+                    request_id=request_id,
+                    principal=principal,
+                    event_code="TRACKING_ADOPT_OBSERVATION",
+                    resource_kind="TRACKING",
+                    resource_id=tracking.id,
+                )
+                return self._tracking_data(tracking), outcome
+        except ResourceNotFound:
+            record_denial(
+                session,
+                principal=principal,
+                request_id=request_id,
+                event_code="TRACKING_ADOPT_OBSERVATION",
                 reason="resource_not_in_scope",
             )
             raise

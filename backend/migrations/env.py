@@ -3,9 +3,11 @@ from sqlalchemy import create_engine, pool
 
 from app.acquisitions import models as acquisition_models  # noqa: F401
 from app.clients import models as client_models  # noqa: F401
+from app.comparisons import models as comparison_models  # noqa: F401
 from app.config import Settings
 from app.db import Base
 from app.identity import models as identity_models  # noqa: F401
+from app.novelties import models as novelty_models  # noqa: F401
 from app.trackings import models as tracking_models  # noqa: F401
 
 config = context.config

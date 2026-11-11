@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse, Response
 
 from app.acquisitions.api import router as acquisitions_router
 from app.clients.api import router as clients_router
+from app.comparisons.api import router as comparisons_router
 from app.config import Settings
 from app.core.errors import ApplicationError
 from app.db import create_database_engine, session_factory
@@ -17,6 +18,7 @@ from app.identity.api import router as identity_router
 from app.identity.domain import AuthenticationFailed, RateLimited
 from app.identity.rate_limit import LoginRateLimiter
 from app.identity.service import IdentityService
+from app.novelties.api import router as novelties_router
 from app.trackings.api import router as trackings_router
 
 logger = logging.getLogger("legaltech.api")
@@ -48,6 +50,13 @@ class LegalTechFastAPI(FastAPI):
                 "get": ("401", "403", "404", "409", "422")
             },
             "/api/v1/internal/trackings/{tracking_id}/adoptions": {
+                "post": ("401", "403", "404", "409", "422")
+            },
+            "/api/v1/internal/comparisons": {"post": ("401", "403", "404", "409", "422")},
+            "/api/v1/internal/comparisons/{comparison_id}": {
+                "get": ("401", "403", "404", "409", "422")
+            },
+            "/api/v1/internal/trackings/{tracking_id}/evaluations": {
                 "post": ("401", "403", "404", "409", "422")
             },
         }
@@ -121,6 +130,33 @@ class LegalTechFastAPI(FastAPI):
             },
             "AdoptObservationRequest": {"observation_id": {"minLength": 1}},
             "AdoptionResult": {"outcome": {"minLength": 1}},
+            "ComparisonCreate": {
+                "old_observation_id": {"minLength": 1},
+                "new_observation_id": {"minLength": 1},
+                "rule_version": {"minLength": 1, "maxLength": 32},
+            },
+            "TechnicalChange": {
+                "id": {"minLength": 1},
+                "action_key": {"minLength": 1},
+                "change_kind": {"minLength": 1},
+                "evidence": {"minLength": 1},
+            },
+            "Comparison": {
+                "id": {"minLength": 1},
+                "process_id": {"minLength": 1},
+                "old_observation_id": {"minLength": 1},
+                "new_observation_id": {"minLength": 1},
+                "rule_version": {"minLength": 1},
+                "result": {"minLength": 1},
+            },
+            "EvaluationCreate": {"comparison_id": {"minLength": 1}},
+            "Evaluation": {
+                "id": {"minLength": 1},
+                "tracking_id": {"minLength": 1},
+                "comparison_id": {"minLength": 1},
+                "decision": {"minLength": 1},
+                "reason": {"minLength": 1},
+            },
         }
         for schema_name, constraints in schema_constraints.items():
             properties = schemas.get(schema_name, {}).get("properties", {})
@@ -133,6 +169,11 @@ class LegalTechFastAPI(FastAPI):
                 for variant in variants:
                     if variant.get("type") == "string":
                         variant.update(property_constraints)
+
+        evaluation_schema = schemas.get("Evaluation", {}).get("properties", {})
+        novelty_items = evaluation_schema.get("novelty_ids", {}).get("items", {})
+        if novelty_items.get("type") == "string":
+            novelty_items["minLength"] = 1
 
         for path_item in schema.get("paths", {}).values():
             for operation in path_item.values():
@@ -200,6 +241,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(clients_router)
     app.include_router(trackings_router)
     app.include_router(acquisitions_router)
+    app.include_router(comparisons_router)
+    app.include_router(novelties_router)
 
     @app.middleware("http")
     async def attach_request_id(

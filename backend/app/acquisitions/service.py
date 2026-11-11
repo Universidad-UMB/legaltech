@@ -1,6 +1,5 @@
 import hashlib
 import json
-from datetime import UTC, datetime
 from typing import Literal
 from uuid import UUID, uuid4
 
@@ -25,8 +24,7 @@ from app.core.errors import InvalidInput, ResourceConflict, ResourceNotFound
 from app.identity.domain import Principal
 from app.identity.models import AuditEvent
 from app.trackings.domain import TrackingData
-from app.trackings.models import Tracking
-from app.trackings.repository import tracking_for_assigned_account
+from app.trackings.service import TrackingService
 
 
 class AcquisitionService:
@@ -196,69 +194,13 @@ class AcquisitionService:
         tracking_id: UUID,
         observation_id: UUID,
     ) -> tuple[TrackingData, Literal["BASELINE_SET", "ADVANCED", "ALREADY_ADOPTED"]]:
-        authorize_internal_roles(
+        return TrackingService().adopt_observation(
             session,
             principal=principal,
             request_id=request_id,
-            event_code="TRACKING_ADOPT_OBSERVATION",
-            allowed_roles={"ANALYST"},
+            tracking_id=tracking_id,
+            observation_id=observation_id,
         )
-        try:
-            with session.begin():
-                tracking = tracking_for_assigned_account(
-                    session,
-                    tracking_id=tracking_id,
-                    account_id=principal.account_id,
-                    lock=True,
-                )
-                if tracking is None:
-                    raise ResourceNotFound
-                if tracking.status != "ACTIVE":
-                    raise ResourceConflict
-
-                observation = repository.observation_for_tracking(
-                    session,
-                    observation_id=observation_id,
-                    process_id=tracking.process_id,
-                )
-                if observation is None:
-                    raise ResourceNotFound
-                if observation.quality != "COMPARABLE" or observation.sealed_at is None:
-                    raise ResourceConflict
-
-                outcome: Literal["BASELINE_SET", "ADVANCED", "ALREADY_ADOPTED"]
-                if tracking.baseline_observation_id is None:
-                    tracking.baseline_observation_id = observation.id
-                    tracking.last_adopted_observation_id = observation.id
-                    tracking.updated_at = datetime.now(UTC)
-                    outcome = "BASELINE_SET"
-                elif tracking.last_adopted_observation_id == observation.id:
-                    outcome = "ALREADY_ADOPTED"
-                else:
-                    # INC-03/04 add comparison and evaluation persistence. Until then,
-                    # a later snapshot cannot move the cursor without an evaluation.
-                    raise ResourceConflict
-
-                self._audit(
-                    session,
-                    request_id=request_id,
-                    principal=principal,
-                    event_code="TRACKING_ADOPT_OBSERVATION",
-                    resource_kind="TRACKING",
-                    resource_id=tracking.id,
-                )
-                return self._tracking_data(tracking), outcome
-        except ResourceNotFound:
-            record_denial(
-                session,
-                principal=principal,
-                request_id=request_id,
-                event_code="TRACKING_ADOPT_OBSERVATION",
-                reason="resource_not_in_scope",
-            )
-            raise
-        except IntegrityError as exc:
-            raise ResourceConflict from exc
 
     @staticmethod
     def _acquisition_data(run: AcquisitionRun, observation: Observation | None) -> AcquisitionData:
@@ -283,20 +225,6 @@ class AcquisitionService:
             observed_at=observation.observed_at,
             actions=repository.actions_for_observation(session, observation.id),
             coverage_note=observation.coverage_note,
-        )
-
-    @staticmethod
-    def _tracking_data(tracking: Tracking) -> TrackingData:
-        return TrackingData(
-            id=tracking.id,
-            tracking_code=tracking.tracking_code,
-            client_id=tracking.client_id,
-            process_id=tracking.process_id,
-            status=tracking.status,
-            baseline_observation_id=tracking.baseline_observation_id,
-            last_adopted_observation_id=tracking.last_adopted_observation_id,
-            created_at=tracking.created_at,
-            updated_at=tracking.updated_at,
         )
 
     @staticmethod

@@ -127,6 +127,22 @@ def observation_for_tracking(
     )
 
 
+def next_comparable_observation(
+    session: Session, *, process_id: UUID, after: datetime
+) -> Observation | None:
+    return session.scalar(
+        select(Observation)
+        .where(
+            Observation.process_id == process_id,
+            Observation.quality == "COMPARABLE",
+            Observation.sealed_at.is_not(None),
+            Observation.observed_at > after,
+        )
+        .order_by(Observation.observed_at, Observation.id)
+        .limit(1)
+    )
+
+
 def actions_for_observation(
     session: Session, observation_id: UUID
 ) -> tuple[ObservedActionData, ...]:

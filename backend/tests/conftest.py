@@ -57,6 +57,7 @@ def _clear_identity_data() -> None:
         cleanup_session.execute(
             text(
                 "TRUNCATE TABLE observed_actions, observations, acquisition_runs, "
+                "novelties, tracking_evaluations, technical_changes, comparisons, "
                 "external_tracking_scopes, internal_tracking_assignments, trackings, "
                 "judicial_processes, account_roles, auth_sessions, audit_events, "
                 "accounts, clients, persons"

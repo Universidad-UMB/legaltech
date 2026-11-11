@@ -22,6 +22,10 @@ def test_migration_is_current_and_identity_tables_exist() -> None:
         "acquisition_runs",
         "observations",
         "observed_actions",
+        "comparisons",
+        "technical_changes",
+        "tracking_evaluations",
+        "novelties",
         "trackings",
         "external_tracking_scopes",
         "internal_tracking_assignments",
@@ -34,7 +38,22 @@ def test_migration_is_current_and_identity_tables_exist() -> None:
     assert expected_tables.issubset(table_names)
     with TEST_ENGINE.connect() as connection:
         revision = connection.scalar(text("SELECT version_num FROM alembic_version"))
-    assert revision == "0003_synthetic_acquisitions"
+    assert revision == "0004_comparisons_and_novelties"
+
+
+def test_comparison_and_novelty_constraints_exist() -> None:
+    inspector = inspect(TEST_ENGINE)
+    expected_unique_constraints = {
+        "comparisons": {"uq_comparisons_pair_rule"},
+        "technical_changes": {"uq_technical_changes_logical"},
+        "tracking_evaluations": {"uq_tracking_evaluations_tracking_comparison"},
+        "novelties": {"uq_novelties_tracking_change"},
+    }
+    for table, expected_names in expected_unique_constraints.items():
+        actual_names = {
+            constraint["name"] for constraint in inspector.get_unique_constraints(table)
+        }
+        assert expected_names.issubset(actual_names)
 
 
 def test_acquisition_tables_and_sealing_triggers_exist() -> None:

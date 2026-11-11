@@ -1,4 +1,4 @@
-# LegalTech backend — INC-00 a INC-02
+# LegalTech backend — INC-00 a INC-03
 
 INC-00 provides the local FastAPI shell, identity and session handling, PostgreSQL migration, synthetic identity bootstrap, and quality checks. INC-01 adds client, judicial process, and tracking management with contextual internal authorization. INC-02 adds synthetic fixture acquisitions, sealed observations, and tracking baseline adoption. Implemented operation IDs are `healthz`, `login`, `logout`, `getPrincipal`, `createClient`, `getClient`, `createProcess`, `getProcess`, `createTracking`, `getTracking`, `activateTracking`, `createAcquisition`, `getAcquisition`, `getObservation`, and `adoptObservation`.
 
@@ -45,6 +45,16 @@ This seed is restricted to local `legaltech_demo`, adds only missing assignments
 Successful fixtures create immutable observations with append-only actions and a database seal. `FAILED` and `INCOMPLETE` runs retain their coverage result and do not create an observation. `GET /acquisition-runs/{run_id}` and `GET /observations/{observation_id}` require an internal account assigned to a tracking on the process. `POST /trackings/{tracking_id}/adoptions` is limited to an assigned analyst: the first comparable, sealed observation sets baseline and last-adopted references; an exact retry returns `ALREADY_ADOPTED`. A later observation returns 409 until a comparison and evaluation exist, so this increment cannot advance a tracking past an unevaluated change.
 
 The local Swagger UI is available at `http://127.0.0.1:8001/docs`. `/healthz` confirms the API process is serving HTTP and intentionally does not claim database health.
+
+## INC-03 comparisons and evaluations
+
+The API compares sealed snapshots from the same process by fixture action key. It reports `ADDED` keys in a stable order and records an explicit `NOT_COMPARABLE` result for snapshots with incomplete quality, missing seals, duplicate action keys, or non-increasing observation times. It does not compare action descriptions or make legal judgments.
+
+`POST /api/v1/internal/comparisons` is limited to an assigned analyst. Repeating the same ordered pair and rule version returns the stored comparison and change IDs. `GET /api/v1/internal/comparisons/{comparison_id}` requires an internal account assigned to the process.
+
+`POST /api/v1/internal/trackings/{tracking_id}/evaluations` locks the assigned active tracking, requires its last adopted snapshot to be the comparison's old snapshot, and requires the new snapshot to be the next comparable snapshot. It creates the evaluation and eligible novelties in one transaction. Repeating the evaluation returns the same IDs. The first adopted snapshot remains a baseline and does not create a retrospective novelty.
+
+The adoption route now advances an existing baseline only after a persisted evaluation for the exact old/new pair. It rejects a backward move, a skipped comparable snapshot, an unassessed pair, and a pair with a non-comparable result. The tracking row lock serializes evaluation and adoption attempts; unique constraints protect retries across database sessions.
 
 ## PostgreSQL tests and migrations
 
