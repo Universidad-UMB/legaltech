@@ -1,0 +1,53 @@
+from alembic import context
+from sqlalchemy import create_engine, pool
+
+from app.acquisitions import models as acquisition_models  # noqa: F401
+from app.clients import models as client_models  # noqa: F401
+from app.comparisons import models as comparison_models  # noqa: F401
+from app.config import Settings
+from app.db import Base
+from app.identity import models as identity_models  # noqa: F401
+from app.novelties import models as novelty_models  # noqa: F401
+from app.publications import models as publication_models  # noqa: F401
+from app.trackings import models as tracking_models  # noqa: F401
+
+config = context.config
+settings = Settings()
+target_metadata = Base.metadata
+
+
+def run_migrations_offline() -> None:
+    context.configure(
+        url=settings.database(migration=True),
+        target_metadata=target_metadata,
+        literal_binds=True,
+        dialect_opts={"paramstyle": "named"},
+        compare_type=True,
+    )
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+def run_migrations_online() -> None:
+    engine = create_engine(
+        settings.database(migration=True),
+        poolclass=pool.NullPool,
+        hide_parameters=True,
+        connect_args={"connect_timeout": 5, "options": "-c timezone=UTC"},
+    )
+    with engine.connect() as connection:
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            compare_type=True,
+            transaction_per_migration=True,
+        )
+        with context.begin_transaction():
+            context.run_migrations()
+    engine.dispose()
+
+
+if context.is_offline_mode():
+    run_migrations_offline()
+else:
+    run_migrations_online()

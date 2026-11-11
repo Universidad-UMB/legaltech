@@ -7,9 +7,9 @@ estado: estrategia y especificaciones; 0 ejecutadas
 # TEST-001 — Estrategia de calidad y aceptación del backend
 
 ## 1. Propósito
-Probar comportamiento de negocio (no solo CRUD), independencia de tenants, ausencia de duplicados y atomicidad sobre PostgreSQL real. Basar casos en `referencias/fase_0/SCOPE-001`, `referencias/fase_1/DOMAIN-001`, `referencias/fase_3/pruebas/DATA-TEST-001`, `referencias/fase_4/pruebas/TEST-API-001`, el contrato OpenAPI y los fixtures `PROTO-DAT-001`.
+Probar comportamiento de negocio (no solo CRUD), independencia de tenants, ausencia de duplicados y atomicidad sobre PostgreSQL real. Basar casos en `docs/references/fase_0/SCOPE-001`, `docs/references/fase_1/DOMAIN-001`, `docs/references/fase_3/pruebas/DATA-TEST-001`, `docs/references/fase_4/pruebas/TEST-API-001`, el contrato OpenAPI y los fixtures `PROTO-DAT-001`.
 
-**Inventario:** 18 escenarios originales `PROTO-AT-01..18` en `pruebas/PROTO-AT-001.json`, 36 negativos HTTP en `pruebas/API-NEG-001.csv` y 39 DB/integración en `pruebas/DATA-TEST-001.csv`. **Son especificaciones, no archivos de prueba Python ejecutables ni pruebas PASA.** Los 18 deben convertirse en tests automatizados con trazabilidad y además tener un guion de presentación reproducible.
+**Inventario:** 18 escenarios originales `PROTO-AT-01..18` en `docs/testing/specifications/PROTO-AT-001.json`, 36 negativos HTTP en `docs/testing/specifications/API-NEG-001.csv` y 39 DB/integración en `docs/testing/specifications/DATA-TEST-001.csv`. **Son especificaciones, no archivos de prueba Python ejecutables ni pruebas PASA.** Los 18 deben convertirse en tests automatizados con trazabilidad y además tener un guion de presentación reproducible.
 
 ## 2. Pirámide de pruebas y reglas
 
@@ -24,7 +24,7 @@ Probar comportamiento de negocio (no solo CRUD), independencia de tenants, ausen
 
 ## 3. Especificación verificable para cada AT
 
-La matriz `trazabilidad/AT-RF-TEST-001.csv` relaciona AT → RF del catálogo → DOM-R → incremento → operationId → test a implementar. Los identificadores propuestos `tests/acceptance/test_proto_at_nn.py::test_escenario` son *rutas objetivo*, no archivos existentes.
+La matriz `docs/development/traceability/AT-RF-TEST-001.csv` relaciona AT → RF del catálogo → DOM-R → incremento → operationId → test a implementar. Los identificadores propuestos `tests/acceptance/test_proto_at_nn.py::test_escenario` son *rutas objetivo*, no archivos existentes.
 
 | AT | Acción/expectativa principal | Principal artefacto de prueba |
 |---|---|---|

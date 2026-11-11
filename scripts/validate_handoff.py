@@ -14,11 +14,11 @@ def rows(p):
 
 fx=readjson('fixtures/PROTO-DAT-001.json')
 expected=readjson('fixtures/PROTO-EXPECTED-001.json')
-at=readjson('pruebas/PROTO-AT-001.json')
-neg=rows('pruebas/API-NEG-001.csv'); db=rows('pruebas/DATA-TEST-001.csv')
-ops=rows('trazabilidad/OPERACIONES-INC-001.csv')
-tr=rows('trazabilidad/AT-RF-TEST-001.csv')
-rnf=rows('trazabilidad/RNF-TEST-001.csv')
+at=readjson('docs/testing/specifications/PROTO-AT-001.json')
+neg=rows('docs/testing/specifications/API-NEG-001.csv'); db=rows('docs/testing/specifications/DATA-TEST-001.csv')
+ops=rows('docs/development/traceability/OPERACIONES-INC-001.csv')
+tr=rows('docs/development/traceability/AT-RF-TEST-001.csv')
+rnf=rows('docs/development/traceability/RNF-TEST-001.csv')
 check(len(at)==18 and {r['id'] for r in at}=={f'PROTO-AT-{i:02}' for i in range(1,19)},'AT 18 IDs no coinciden')
 check(len(neg)==36 and {r['id'] for r in neg}=={f'API-N{i:02}' for i in range(1,37)},'36 API-N no coinciden')
 check(len(db)==39 and {r['id'] for r in db}=={f'DT-{i:02}' for i in range(1,40)},'39 DT no coinciden')
@@ -61,8 +61,8 @@ else:
     check(len(names)==35 and set(names)=={r['operation_id'] for r in ops},'Operaciones YAML no coinciden con trazabilidad')
     check(all(set(row['operation_ids']).issubset(set(names)) for row in at),'AT usa operación inexistente')  # operation_ids es lista
 
-check(all((root/'tickets'/f'INC-{i:02}.md').exists() for i in range(8)),'Tickets incompletos')
-check((root/'AGENT.md').exists() and (root/'docs/DEC-F5-001_v0.1.md').exists(),'AGENT/decisiones ausentes')
+check(all((root/'docs/development/tickets'/f'INC-{i:02}.md').exists() for i in range(8)),'Tickets incompletos')
+check((root/'AGENT.md').exists() and (root/'docs/decisions/DEC-F5-001_v0.1.md').exists(),'AGENT/decisiones ausentes')
 if problems:
     print('FALLA:')
     for msg in problems: print(' -',msg)

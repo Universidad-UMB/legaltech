@@ -1,0 +1,55 @@
+name: legaltech-backend
+
+services:
+  db:
+    image: postgres:16.6-alpine
+    environment:
+      POSTGRES_DB: legaltech_demo
+      POSTGRES_USER: legaltech_admin
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?Run scripts/dev_setup.py first}
+      POSTGRES_RUNTIME_PASSWORD: ${POSTGRES_RUNTIME_PASSWORD:?Run scripts/dev_setup.py first}
+      POSTGRES_MIGRATOR_PASSWORD: ${POSTGRES_MIGRATOR_PASSWORD:?Run scripts/dev_setup.py first}
+      TZ: UTC
+    command: ["postgres", "-c", "timezone=UTC"]
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - legaltech-postgres:/var/lib/postgresql/data
+      - ./docker/db-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U legaltech_admin -d legaltech_demo"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  api:
+    build: .
+    environment:
+      APP_ENV: local
+      DATABASE_URL: postgresql+psycopg://legaltech_runtime:${POSTGRES_RUNTIME_PASSWORD}@db:5432/legaltech_demo
+    ports:
+      - "127.0.0.1:8001:8000"
+    volumes:
+      - ../fixtures:/fixtures:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  migrate:
+    build: .
+    profiles: ["tools"]
+    entrypoint: ["uv", "run", "--no-sync", "alembic"]
+    command: ["upgrade", "head"]
+    environment:
+      APP_ENV: local
+      DATABASE_URL: postgresql+psycopg://legaltech_runtime:${POSTGRES_RUNTIME_PASSWORD}@db:5432/legaltech_demo
+      MIGRATION_DATABASE_URL: postgresql+psycopg://legaltech_migrator:${POSTGRES_MIGRATOR_PASSWORD}@db:5432/legaltech_demo
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  legaltech-postgres:
+    name: legaltech-backend-postgres

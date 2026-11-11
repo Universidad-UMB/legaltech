@@ -11,9 +11,9 @@ Este paquete es autocontenido: integra todos los 101 archivos de Fase 5, mantien
 - `governance/APROBACION-DEMO-001.json`: puerta de aceptación expresa, **PENDIENTE por defecto**.
 - `orchestration/autopilot.py`: orquestador CLI `doctor`, `status`, `run`, `run --dry-run`.
 - `orchestration/check_runtime_openapi.py`: compara el contrato HTTP esperado por incremento con FastAPI `app.openapi()`.
-- `orchestration/EXEC-001_v0.1.md`: arquitectura, fallos, reintentos y criterio de finalización.
-- `orchestration/RUNBOOK-001_v0.1.md`: preparación de entorno Windows + WSL2, ejecución y reanudación.
-- `orchestration/PROMPT-ORQ-001_v0.1.md`: guía de implementación autónoma.
+- `docs/operations/orchestration/EXEC-001_v0.1.md`: arquitectura, fallos, reintentos y criterio de finalización.
+- `docs/operations/orchestration/RUNBOOK-001_v0.1.md`: preparación de entorno Windows + WSL2, ejecución y reanudación.
+- `docs/operations/orchestration/PROMPT-ORQ-001_v0.1.md`: guía de implementación autónoma.
 - `orchestration/tests/test_autopilot.py`: pruebas unitarias del runner.
 
 ## Comandos

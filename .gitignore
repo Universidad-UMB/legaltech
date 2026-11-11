@@ -15,3 +15,13 @@ __pycache__/
 backend/.venv/
 *.sqlite3
 *.log
+.nodeterm/
+.autopilot/
+backend/.venv/
+backend/.env
+backend/.env.*
+!backend/.env.example
+**/__pycache__/
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
