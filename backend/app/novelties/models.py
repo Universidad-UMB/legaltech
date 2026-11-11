@@ -170,7 +170,10 @@ class StateTransition(Base):
             ondelete="RESTRICT",
             name="fk_state_transitions_actor_person",
         ),
-        CheckConstraint("resource_type IN ('CLIENT', 'TRACKING', 'NOVELTY')", name="resource_type"),
+        CheckConstraint(
+            "resource_type IN ('CLIENT', 'TRACKING', 'NOVELTY', 'PUBLICATION_VERSION')",
+            name="resource_type",
+        ),
         CheckConstraint("actor_kind IN ('USER', 'SYSTEM')", name="actor_kind"),
         CheckConstraint(
             "((client_id IS NOT NULL)::int + (tracking_id IS NOT NULL)::int + "
@@ -180,7 +183,8 @@ class StateTransition(Base):
         CheckConstraint(
             "(resource_type = 'CLIENT' AND client_id IS NOT NULL) OR "
             "(resource_type = 'TRACKING' AND tracking_id IS NOT NULL) OR "
-            "(resource_type = 'NOVELTY' AND novelty_id IS NOT NULL)",
+            "(resource_type = 'NOVELTY' AND novelty_id IS NOT NULL) OR "
+            "(resource_type = 'PUBLICATION_VERSION' AND version_id IS NOT NULL)",
             name="resource_type_matches_id",
         ),
         CheckConstraint(
@@ -205,6 +209,12 @@ class StateTransition(Base):
             ondelete="RESTRICT",
             name="fk_state_transitions_novelty",
         ),
+        ForeignKeyConstraint(
+            ["version_id"],
+            ["publication_versions.id"],
+            ondelete="RESTRICT",
+            name="fk_state_transitions_version",
+        ),
         Index(
             "ix_state_transitions_tracking_occurred",
             "tracking_id",
@@ -216,6 +226,12 @@ class StateTransition(Base):
             "novelty_id",
             "occurred_at",
             postgresql_where=text("novelty_id IS NOT NULL"),
+        ),
+        Index(
+            "ix_state_transitions_version_occurred",
+            "version_id",
+            "occurred_at",
+            postgresql_where=text("version_id IS NOT NULL"),
         ),
     )
 

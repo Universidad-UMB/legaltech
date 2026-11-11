@@ -8,6 +8,7 @@ from app.config import Settings
 from app.db import Base
 from app.identity import models as identity_models  # noqa: F401
 from app.novelties import models as novelty_models  # noqa: F401
+from app.publications import models as publication_models  # noqa: F401
 from app.trackings import models as tracking_models  # noqa: F401
 
 config = context.config

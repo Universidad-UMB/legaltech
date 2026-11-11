@@ -1,6 +1,6 @@
-# LegalTech backend — INC-00 a INC-04
+# LegalTech backend — INC-00 a INC-05
 
-INC-00 provides the local FastAPI shell, identity and session handling, PostgreSQL migration, synthetic identity bootstrap, and quality checks. INC-01 adds client, judicial process, and tracking management with contextual internal authorization. INC-02 adds synthetic fixture acquisitions, sealed observations, and tracking baseline adoption. INC-03 adds comparisons and eligibility evaluation. INC-04 adds human novelty reviews. Implemented operation IDs are `healthz`, `login`, `logout`, `getPrincipal`, `createClient`, `getClient`, `createProcess`, `getProcess`, `createTracking`, `getTracking`, `activateTracking`, `createAcquisition`, `getAcquisition`, `getObservation`, `adoptObservation`, `compareObservations`, `getComparison`, `evaluateComparison`, `listNovelties`, `getNovelty`, `startOperativeReview`, `escalateNovelty`, and `recordLegalReview`.
+INC-00 provides the local FastAPI shell, identity and session handling, PostgreSQL migration, synthetic identity bootstrap, and quality checks. INC-01 adds client, judicial process, and tracking management with contextual internal authorization. INC-02 adds synthetic fixture acquisitions, sealed observations, and tracking baseline adoption. INC-03 adds comparisons and eligibility evaluation. INC-04 adds human novelty reviews. INC-05 adds versioned text publications, independent approval, and atomic selection of the current version. Implemented operation IDs are `healthz`, `login`, `logout`, `getPrincipal`, `createClient`, `getClient`, `createProcess`, `getProcess`, `createTracking`, `getTracking`, `activateTracking`, `createAcquisition`, `getAcquisition`, `getObservation`, `adoptObservation`, `compareObservations`, `getComparison`, `evaluateComparison`, `listNovelties`, `getNovelty`, `startOperativeReview`, `escalateNovelty`, `recordLegalReview`, `createPublication`, `getPublication`, `createPublicationVersion`, `getPublicationVersion`, `submitPublicationVersion`, `decidePublicationVersion`, and `publishPublicationVersion`.
 
 The bootstrap creates synthetic people, Alfa/Beta clients, accounts, and roles. Processes and trackings are created through the API; internal assignments and external scopes remain local seed data and have no API mutation routes.
 
@@ -63,6 +63,14 @@ Internal users assigned to a tracking can list its novelties and read one novelt
 Only an assigned `ANALYST` can start an operative review and escalate it with a decision and synthetic evidence note. Only an assigned `LAWYER` can record the human legal review after escalation. The lawyer must belong to a different `person_id` than the operative reviewer, including when a person has multiple accounts. Actor identity is taken from the authenticated session; actor fields in request bodies are rejected.
 
 Protected reads also record sanitized success audits. Each successful state change locks the novelty and commits its status update, actor-attributed `state_transitions` row, and audit event together. Escalations and legal reviews also append an immutable `novelty_reviews` row with the supplied decision and evidence note. Illegal or repeated state changes return `409`; a role without access returns `403`, and an unassigned internal account receives a generic `404`. These endpoints record fictional human decisions only; they do not calculate legal deadlines or provide legal advice.
+
+## INC-05 versioned publications
+
+Only an assigned `PREPARER` can create a publication or draft version, and the tracking and client must be active. A draft contains reviewed `TREATMENT_DEFINED` novelties from one tracking, the exact synthetic text, and its SHA-256 digest. The server records the preparer's `person_id` from the authenticated session.
+
+Submitting a draft freezes its text, recipient, novelty links, and preparer list. An assigned `COORDINATOR` can approve or reject that exact snapshot only when their person differs from every preparer. The approval record stores the snapshot digest and justification. A new version can be created after a prior version is published or rejected; it receives a new digest and must be submitted and approved independently.
+
+Publishing requires an approved version whose digest still matches the stored text. The `PUBLISHED` status, state transition, audit event, and `publications.current_version_id` update commit together. A forced failure before the pointer update rolls back the status change and keeps the prior current version. PostgreSQL constraints, triggers, composite foreign keys, and append-only approval/history tables reinforce these rules. Portal read routes and external visibility are implemented in INC-06.
 
 ## PostgreSQL tests and migrations
 

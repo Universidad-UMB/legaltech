@@ -35,6 +35,28 @@ EXPECTED_IMPLEMENTED_OPERATIONS = {
     ),
     "escalateNovelty": ("post", "/api/v1/internal/novelties/{novelty_id}/escalate"),
     "recordLegalReview": ("post", "/api/v1/internal/novelties/{novelty_id}/legal-review"),
+    "createPublication": ("post", "/api/v1/internal/publications"),
+    "getPublication": ("get", "/api/v1/internal/publications/{publication_id}"),
+    "createPublicationVersion": (
+        "post",
+        "/api/v1/internal/publications/{publication_id}/versions",
+    ),
+    "getPublicationVersion": (
+        "get",
+        "/api/v1/internal/publication-versions/{version_id}",
+    ),
+    "submitPublicationVersion": (
+        "post",
+        "/api/v1/internal/publication-versions/{version_id}/submit",
+    ),
+    "decidePublicationVersion": (
+        "post",
+        "/api/v1/internal/publication-versions/{version_id}/decision",
+    ),
+    "publishPublicationVersion": (
+        "post",
+        "/api/v1/internal/publication-versions/{version_id}/publish",
+    ),
 }
 
 
@@ -154,6 +176,37 @@ def test_inc00_runtime_routes_match_the_canonical_openapi_subset() -> None:
             "post",
             ("401", "403", "404", "409", "422"),
         ),
+        ("/api/v1/internal/publications", "post", ("401", "403", "404", "409", "422")),
+        (
+            "/api/v1/internal/publications/{publication_id}",
+            "get",
+            ("401", "403", "404", "409", "422"),
+        ),
+        (
+            "/api/v1/internal/publications/{publication_id}/versions",
+            "post",
+            ("401", "403", "404", "409", "422"),
+        ),
+        (
+            "/api/v1/internal/publication-versions/{version_id}",
+            "get",
+            ("401", "403", "404", "409", "422"),
+        ),
+        (
+            "/api/v1/internal/publication-versions/{version_id}/submit",
+            "post",
+            ("401", "403", "404", "409", "422"),
+        ),
+        (
+            "/api/v1/internal/publication-versions/{version_id}/decision",
+            "post",
+            ("401", "403", "404", "409", "422"),
+        ),
+        (
+            "/api/v1/internal/publication-versions/{version_id}/publish",
+            "post",
+            ("401", "403", "404", "409", "422"),
+        ),
     ):
         for status_code in status_codes:
             assert set(runtime["paths"][path][method]["responses"][status_code]["content"]) == {
@@ -187,6 +240,11 @@ def test_inc00_runtime_routes_match_the_canonical_openapi_subset() -> None:
         "NoveltyList",
         "OperativeEscalation",
         "LegalReview",
+        "PublicationCreate",
+        "VersionCreate",
+        "Publication",
+        "PublicationVersion",
+        "ApprovalRequest",
     ):
         assert _without_titles(runtime["components"]["schemas"][schema_name]) == _without_titles(
             canonical["components"]["schemas"][schema_name]
@@ -202,6 +260,9 @@ def test_inc00_runtime_routes_match_the_canonical_openapi_subset() -> None:
         "evaluateComparison": "EvaluationCreate",
         "escalateNovelty": "OperativeEscalation",
         "recordLegalReview": "LegalReview",
+        "createPublication": "PublicationCreate",
+        "createPublicationVersion": "VersionCreate",
+        "decidePublicationVersion": "ApprovalRequest",
     }
     response_schemas = {
         "createClient": ("201", "Client"),
@@ -223,6 +284,13 @@ def test_inc00_runtime_routes_match_the_canonical_openapi_subset() -> None:
         "startOperativeReview": ("200", "Novelty"),
         "escalateNovelty": ("200", "Novelty"),
         "recordLegalReview": ("200", "Novelty"),
+        "createPublication": ("201", "Publication"),
+        "getPublication": ("200", "Publication"),
+        "createPublicationVersion": ("201", "PublicationVersion"),
+        "getPublicationVersion": ("200", "PublicationVersion"),
+        "submitPublicationVersion": ("200", "PublicationVersion"),
+        "decidePublicationVersion": ("200", "PublicationVersion"),
+        "publishPublicationVersion": ("200", "PublicationVersion"),
     }
     for operation_id, schema_name in request_schemas.items():
         method, path = EXPECTED_IMPLEMENTED_OPERATIONS[operation_id]

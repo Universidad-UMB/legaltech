@@ -19,6 +19,7 @@ from app.identity.domain import AuthenticationFailed, RateLimited
 from app.identity.rate_limit import LoginRateLimiter
 from app.identity.service import IdentityService
 from app.novelties.api import router as novelties_router
+from app.publications.api import router as publications_router
 from app.trackings.api import router as trackings_router
 
 logger = logging.getLogger("legaltech.api")
@@ -72,6 +73,25 @@ class LegalTechFastAPI(FastAPI):
             "/api/v1/internal/novelties/{novelty_id}/legal-review": {
                 "post": ("401", "403", "404", "409", "422")
             },
+            "/api/v1/internal/publications": {"post": ("401", "403", "404", "409", "422")},
+            "/api/v1/internal/publications/{publication_id}": {
+                "get": ("401", "403", "404", "409", "422")
+            },
+            "/api/v1/internal/publications/{publication_id}/versions": {
+                "post": ("401", "403", "404", "409", "422")
+            },
+            "/api/v1/internal/publication-versions/{version_id}": {
+                "get": ("401", "403", "404", "409", "422")
+            },
+            "/api/v1/internal/publication-versions/{version_id}/submit": {
+                "post": ("401", "403", "404", "409", "422")
+            },
+            "/api/v1/internal/publication-versions/{version_id}/decision": {
+                "post": ("401", "403", "404", "409", "422")
+            },
+            "/api/v1/internal/publication-versions/{version_id}/publish": {
+                "post": ("401", "403", "404", "409", "422")
+            },
         }
         for path, operations in problem_responses.items():
             for method, status_codes in operations.items():
@@ -95,7 +115,7 @@ class LegalTechFastAPI(FastAPI):
                 ):
                     property_schema["oneOf"] = nullable_variants
 
-        schema_constraints = {
+        schema_constraints: dict[str, dict[str, dict[str, object]]] = {
             "Client": {"id": {"minLength": 1}, "status": {"minLength": 1}},
             "Process": {
                 "id": {"minLength": 1},
@@ -186,6 +206,37 @@ class LegalTechFastAPI(FastAPI):
                 "decision": {"minLength": 8, "maxLength": 2000},
                 "evidence_note": {"minLength": 8, "maxLength": 2000},
             },
+            "PublicationCreate": {
+                "tracking_id": {"minLength": 1},
+                "content_text": {"minLength": 10, "maxLength": 10000},
+            },
+            "VersionCreate": {"content_text": {"minLength": 10, "maxLength": 10000}},
+            "Publication": {
+                "id": {"minLength": 1},
+                "tracking_id": {"minLength": 1},
+                "client_id": {"minLength": 1},
+                "current_version_id": {"minLength": 1},
+            },
+            "PublicationVersion": {
+                "id": {"minLength": 1},
+                "publication_id": {"minLength": 1},
+                "recipient_tracking_id": {"minLength": 1},
+                "recipient_client_id": {"minLength": 1},
+                "status": {"minLength": 1},
+                "content_text": {"minLength": 1},
+                "content_sha256": {
+                    "minLength": 64,
+                    "maxLength": 64,
+                    "pattern": "^[0-9a-f]{64}$",
+                },
+                "frozen_at": {"minLength": 1},
+                "approved_at": {"minLength": 1},
+                "published_at": {"minLength": 1},
+            },
+            "ApprovalRequest": {
+                "verdict": {"minLength": 1},
+                "justification": {"minLength": 8, "maxLength": 2000},
+            },
         }
         for schema_name, constraints in schema_constraints.items():
             properties = schemas.get(schema_name, {}).get("properties", {})
@@ -203,6 +254,25 @@ class LegalTechFastAPI(FastAPI):
         novelty_items = evaluation_schema.get("novelty_ids", {}).get("items", {})
         if novelty_items.get("type") == "string":
             novelty_items["minLength"] = 1
+
+        for schema_name in ("PublicationCreate", "VersionCreate"):
+            novelty_items = (
+                schemas.get(schema_name, {})
+                .get("properties", {})
+                .get("novelty_ids", {})
+                .get("items", {})
+            )
+            if novelty_items.get("type") == "string":
+                novelty_items["minLength"] = 1
+
+        publication_version_ids = (
+            schemas.get("Publication", {})
+            .get("properties", {})
+            .get("versions", {})
+            .get("items", {})
+        )
+        if publication_version_ids.get("type") == "string":
+            publication_version_ids["minLength"] = 1
 
         for path_item in schema.get("paths", {}).values():
             for operation in path_item.values():
@@ -282,6 +352,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(acquisitions_router)
     app.include_router(comparisons_router)
     app.include_router(novelties_router)
+    app.include_router(publications_router)
 
     @app.middleware("http")
     async def attach_request_id(
