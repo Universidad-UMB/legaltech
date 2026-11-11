@@ -101,4 +101,4 @@ La suite repite el flujo completo, confirma las 18 etapas de aceptación, ejerci
 .\scripts\ci.ps1
 ```
 
-El reporte con comandos, resultados y límites está en [`reports/INC-07.md`](../reports/INC-07.md).
+El reporte con comandos, resultados y límites está en [`delivery/increments/INC-07.md`](../delivery/increments/INC-07.md).

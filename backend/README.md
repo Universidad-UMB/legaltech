@@ -104,7 +104,7 @@ This script runs the frozen dependency sync, Ruff lint and format checks, mypy o
 
 ## INC-07 acceptance, CI, and safe demo reset
 
-The acceptance suite includes an API journey for `PROTO-AT-01..18`, restart persistence checks, PostgreSQL-backed negative and integrity coverage, runtime OpenAPI comparison, and reset-command safety tests. `tests/traceability.py` exposes canonical manifest IDs in pytest node IDs, and `tests/test_requirement_traceability.py` checks all 93 AT, API-N, and DT IDs against the collected test items. Run `uv run --frozen pytest --collect-only -q` from this directory to inspect them. Execution results are recorded in `reports/INC-07.md`.
+The acceptance suite includes an API journey for `PROTO-AT-01..18`, restart persistence checks, PostgreSQL-backed negative and integrity coverage, runtime OpenAPI comparison, and reset-command safety tests. `tests/traceability.py` exposes canonical manifest IDs in pytest node IDs, and `tests/test_requirement_traceability.py` checks all 93 AT, API-N, and DT IDs against the collected test items. Run `uv run --frozen pytest --collect-only -q` from this directory to inspect them. Execution results are recorded in [`docs/delivery/increments/INC-07.md`](../docs/delivery/increments/INC-07.md).
 
 Run the full local CI entry point from PowerShell. It creates a local `.env` only when absent, starts only the `legaltech-backend` PostgreSQL service, applies migrations to `legaltech_test`, and runs lock, Ruff, mypy, pytest, Alembic, and whitespace checks. It does not stop containers or volumes.
 
@@ -119,7 +119,7 @@ uv run python -m scripts.reset_demo --confirm legaltech_demo
 uv run python -m scripts.bootstrap_demo
 ```
 
-`bootstrap_demo` prompts for `DEMO_SEED_PASSWORD` without echo. Recreate processes and trackings through the API, then run `uv run python -m scripts.seed_authorization_context`. Never use a Compose volume removal to reset the demo. See [`docs/DEMO-REST.md`](docs/DEMO-REST.md) for the complete synthetic API sequence.
+`bootstrap_demo` prompts for `DEMO_SEED_PASSWORD` without echo. Recreate processes and trackings through the API, then run `uv run python -m scripts.seed_authorization_context`. Never use a Compose volume removal to reset the demo. See [`docs/operations/DEMO-REST.md`](../docs/operations/DEMO-REST.md) for the complete synthetic API sequence.
 
 ## Identity and operational boundaries
 

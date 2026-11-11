@@ -23,7 +23,7 @@ Se añadió `tests/traceability.py`, que fija los IDs canónicos como IDs de par
 
 ## Trazabilidad ejecutable
 
-Los manifiestos `pruebas/PROTO-AT-001.json`, `pruebas/API-NEG-001.csv` y `pruebas/DATA-TEST-001.csv` permanecen intactos. Los IDs se enlazan con pruebas de comportamiento reales:
+Los manifiestos `docs/testing/specifications/PROTO-AT-001.json`, `docs/testing/specifications/API-NEG-001.csv` y `docs/testing/specifications/DATA-TEST-001.csv` permanecen intactos. Los IDs se enlazan con pruebas de comportamiento reales:
 
 | Familia | Cobertura y evidencia |
 |---|---|
@@ -68,4 +68,4 @@ En este intento, la primera CI se detuvo por Ruff antes de ejecutar pytest; tras
 - `scripts/ci.ps1`, `scripts/reset_demo.py`, `scripts/bootstrap_demo.py`, `scripts/quality.ps1`
 - `tests/traceability.py`, `tests/test_requirement_traceability.py`, `tests/test_demo_acceptance.py`, `tests/test_inc07_integrity.py`, `tests/test_acceptance_infrastructure.py`, `tests/test_reset_demo.py`
 - Pruebas API etiquetadas por ID canónico en `tests/test_*.py`
-- `docs/DEMO-REST.md`, `README.md`, `reports/INC-07.md`, `../docs/ENTREGA-FINAL.md`
+- `docs/operations/DEMO-REST.md`, `backend/README.md`, `docs/delivery/increments/INC-07.md`, `docs/delivery/ENTREGA-FINAL.md`

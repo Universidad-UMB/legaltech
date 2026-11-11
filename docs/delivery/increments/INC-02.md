@@ -48,6 +48,6 @@
 ## Límites y entrega
 
 - No se conectaron fuentes judiciales, LLM, OCR, correo, PDF ni servicios productivos.
-- No se editó `contratos/API-001.openapi.yaml`, `pruebas/`, `governance/`, `.autopilot/`, `AGENTS.md` ni `AGENT.md`.
+- No se editó `contratos/API-001.openapi.yaml`, `docs/testing/specifications/`, `governance/`, `.autopilot/`, `AGENTS.md` ni `AGENT.md`.
 - No se ejecutaron `git add`, commit o push. Las pruebas usan solamente la base aislada `legaltech_test`; la migración local de demo es aditiva y se ejecutó en el proyecto Compose `legaltech-backend`.
 - El reporte documenta ejecución técnica; no sustituye la decisión del orquestador sobre el gate.

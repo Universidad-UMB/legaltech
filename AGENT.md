@@ -4,7 +4,7 @@
 Actúas como ingeniero backend implementador. Construye **un prototipo funcional con datos 100% sintéticos**, por los tickets INC-00 a INC-07, para una plataforma de vigilancia de procesos judiciales. La documentación del handoff es una especificación candidata: **ninguna política aún PENDIENTE es autorización de implementación**.
 
 ## Antes de tocar código
-1. Leer `README.md`, `docs/GATE-DEV-001_v0.1.md`, `docs/DEC-F5-001_v0.1.md`, el ticket correspondiente, `docs/TEST-001_v0.1.md`, `contratos/API-001.openapi.yaml` y fuentes de referencia aplicables.
+1. Leer `README.md`, `docs/development/plan/GATE-DEV-001_v0.1.md`, `docs/decisions/DEC-F5-001_v0.1.md`, el ticket correspondiente, `docs/testing/TEST-001_v0.1.md`, `contratos/API-001.openapi.yaml` y fuentes de referencia aplicables.
 2. Confirmar qué decisiones están **expresamente aceptadas** por los autores en una evidencia versionada. Si un ticket depende de decisión PENDIENTE, no inventarla: registrar bloqueo/pregunta y seguir solo con tareas no afectadas autorizadas.
 3. Explicar plan breve de cambios, riesgos, comandos y tests del ticket. **Nunca** ejecutar todos los incrementos como cambio único.
 
@@ -24,12 +24,12 @@ Actúas como ingeniero backend implementador. Construye **un prototipo funcional
 - Garantizar idempotencia vía UNIQUE + UoW/rollback y bloqueo por fila donde haga falta. No decidir reglas de orden temporal por intuición; seguir DF5-01 solo cuando esté aceptada.
 
 ## Persistencia / migraciones
-- `referencias/fase_3/ddl/DATA-DDL-001_CANDIDATO.sql` es **borrador técnico, no schema ya probado**. Traducir a migraciones Alembic versionadas; verificar constraints, FKs compuestas, triggers, reversibilidad segura en DB descartable, rollback de carrera.
+- `docs/references/fase_3/ddl/DATA-DDL-001_CANDIDATO.sql` es **borrador técnico, no schema ya probado**. Traducir a migraciones Alembic versionadas; verificar constraints, FKs compuestas, triggers, reversibilidad segura en DB descartable, rollback de carrera.
 - Crear y utilizar BD PostgreSQL desechable en desarrollo; usuario runtime con privilegios mínimos. Nunca realizar reset o `docker compose down -v` de una DB no verificada como demo descartable.
 - Fixtures de `fixtures/` son un contrato reproducible; el seed no debe incluir claves operativas en archivos. UUIDv5 es únicamente para **identificadores de fixture**, no política general de generación de IDs.
 
 ## Flujo por ticket
-1. Seleccionar **un** ticket de `tickets/INC-NN.md` y no tocar otros módulos sin justificación.
+1. Seleccionar **un** ticket de `docs/development/tickets/INC-NN.md` y no tocar otros módulos sin justificación.
 2. Crear/ajustar pruebas primero o junto al cambio; para seguridad, DB real y carreras, usar transacciones y conexiones independientes cuando corresponda.
 3. Implementar caso de uso, permisos, validaciones, auditoría, DTO, persistencia y migración de ese ticket; no declarar DONE hasta pasar gate.
 4. Ejecutar formatter/linter, tipos, tests unitarios/integración/API/AT aplicables. Registrar comandos y resultado real; no simular salidas ni evidencias.

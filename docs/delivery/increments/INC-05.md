@@ -26,7 +26,7 @@
 - `tests/test_publications_api.py`: flujo versionado, permisos, separación de personas, hash y congelación, versionado independiente, rollback inyectado y restricciones PostgreSQL.
 - `tests/test_runtime_contract.py`, `tests/test_postgres_schema.py`, `tests/conftest.py`: contrato, esquema y limpieza de fixtures aislados.
 - `README.md`: setup local e instrucciones del flujo de publicaciones.
-- `reports/INC-05.md`: esta evidencia.
+- `docs/delivery/increments/INC-05.md`: esta evidencia.
 
 ## Verificaciones ejecutadas
 

@@ -26,7 +26,7 @@
 - `app/main.py`: registro del router y respuestas de problema uniformes.
 - `tests/test_portal_api.py`, `tests/test_runtime_contract.py`: flujos, aislamiento, concurrencia y contrato runtime.
 - `README.md`: operaciones y límites del portal INC-06.
-- `reports/INC-06.md`: esta evidencia.
+- `docs/delivery/increments/INC-06.md`: esta evidencia.
 
 ## Verificaciones ejecutadas
 

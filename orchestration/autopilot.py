@@ -107,7 +107,7 @@ def show_status(state: dict[str, Any]) -> None:
 
 def doctor(verbose: bool = True) -> bool:
     ok, issues = read_approval()
-    for entry in ('AGENT.md','AGENTS.md','contratos/API-001.openapi.yaml','docs/PLAN-DEV-001_v0.1.md','scripts/validate_handoff.py'):
+    for entry in ('AGENT.md','AGENTS.md','contratos/API-001.openapi.yaml','docs/development/plan/PLAN-DEV-001_v0.1.md','scripts/validate_handoff.py'):
         if not (ROOT/entry).is_file():
             issues.append(f'Archivo requerido ausente: {entry}')
     for t in TICKETS:
@@ -189,10 +189,11 @@ def basic_artifacts() -> list[str]:
 
 def expected_ids() -> dict[str, list[str]]:
     import csv
-    acceptance = json.loads((ROOT/'pruebas/PROTO-AT-001.json').read_text(encoding='utf-8'))
+    acceptance = json.loads((ROOT/'docs/testing/specifications/PROTO-AT-001.json').read_text(encoding='utf-8'))
     expected = {'AT':[x['id'] for x in acceptance]}
     for key, filename in (('API','API-NEG-001.csv'), ('DATA','DATA-TEST-001.csv')):
-        with (ROOT/'pruebas'/filename).open(encoding='utf-8-sig',newline='') as stream:
+        manifest = ROOT / 'docs' / 'testing' / 'specifications' / filename
+        with manifest.open(encoding='utf-8-sig',newline='') as stream:
             expected[key] = [row['id'] for row in csv.DictReader(stream)]
     return expected
 
@@ -228,7 +229,7 @@ def verify(ticket: str, attempt: int, timeout: int, approval_sha: str) -> tuple[
             if not found:
                 return False, message, results
     if ticket == 'INC-07' and not (ROOT/'docs'/'ENTREGA-FINAL.md').is_file():
-        return False, 'Falta docs/ENTREGA-FINAL.md', results
+        return False, 'Falta docs/delivery/ENTREGA-FINAL.md', results
     if digest(APPROVAL) != approval_sha:
         return False,'Archivo de aprobación modificado durante verificación',results
     return True,'Todos los gates automatizados verificables superados',results
@@ -292,7 +293,7 @@ def valid_artifact_path(path: str) -> bool:
     norm = path.replace('\\', '/')
     return (
         norm.startswith('backend/')
-        or norm == 'docs/ENTREGA-FINAL.md'
+        or norm == 'docs/delivery/ENTREGA-FINAL.md'
         or norm == 'orchestration/autopilot.py'
     )
 
@@ -350,7 +351,7 @@ def commit_verified_ticket(ticket: str) -> str:
     normalize_ticket_report(ticket)
     git('add', '-A', '--', 'backend')
     if (ROOT / 'docs' / 'ENTREGA-FINAL.md').exists():
-        git('add', '-A', '--', 'docs/ENTREGA-FINAL.md')
+        git('add', '-A', '--', 'docs/delivery/ENTREGA-FINAL.md')
     # This file is an operator-authorized orchestration change. Codex prompts
     # still prohibit agents from editing it.
     if (ROOT / 'orchestration' / 'autopilot.py').is_file():
@@ -407,9 +408,9 @@ def complete_verified_ticket(state: dict[str, Any], ticket: str) -> None:
 
 def make_prompt(ticket: str, attempt: int, reason: str) -> str:
     intro=f'''Implementa únicamente {ticket} de forma completa y profesional.
-Lee primero AGENTS.md, AGENT.md, tickets/{ticket}.md, documentación de dominio y arquitectura, contrato OpenAPI y fixtures. Trabaja en backend/.
+Lee primero AGENTS.md, AGENT.md, docs/development/tickets/{ticket}.md, documentación de dominio y arquitectura, contrato OpenAPI y fixtures. Trabaja en backend/.
 Este es el intento {attempt}. El orquestador no preguntará si debe continuar a otro incremento: verificará tus cambios y lo lanzará automáticamente si pasa.
-No edites governance/APROBACION-DEMO-001.json, .autopilot/, AGENTS.md, orquestación ni pruebas canónicas como atajo. No añadas integraciones reales. Modifica solo backend/ y, en INC-07, docs/ENTREGA-FINAL.md.
+No edites governance/APROBACION-DEMO-001.json, .autopilot/, AGENTS.md, orquestación ni pruebas canónicas como atajo. No añadas integraciones reales. Modifica solo backend/ y, en INC-07, docs/delivery/ENTREGA-FINAL.md.
 Debes crear/actualizar tests reales, asegurar uv.lock, DB local PostgreSQL, Alembic, Ruff, mypy y pytest. No aceptes 'terminado' sin pruebas. Evita cambios no autorizados a OpenAPI, no ejecutes git add/commit/push (lo hará el orquestador tras verificar), ni toques datos reales. No formules preguntas al operador; documenta bloqueos materiales.
 Al finalizar deja un resumen de archivos y comandos ejecutados con resultados verdaderos; cualquier bloqueo nuevo debe quedar por escrito y sin falsificar el estado. En los Markdown, no dejes espacios ni tabulaciones al final de las líneas; ejecuta `git diff --check` antes de cerrar.
 '''

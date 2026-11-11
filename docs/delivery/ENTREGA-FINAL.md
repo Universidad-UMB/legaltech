@@ -26,7 +26,7 @@ uv sync --frozen
 
 La CI inicia solo el servicio PostgreSQL del proyecto Compose `legaltech-backend`, ejecuta Alembic en `legaltech_test` y corre Ruff, formato, mypy, pytest y `git diff --check`. La primera ejecución del intento 4 se detuvo por dos imports desordenados de Ruff; se corrigieron y la repetición completa pasó.
 
-La revisión aplicada fue `0006_versioned_publications`; `alembic check` informó que no hay operaciones sin migración. El reporte [INC-07](../backend/reports/INC-07.md) registra los comandos, resultados, trazabilidad y límites.
+La revisión aplicada fue `0006_versioned_publications`; `alembic check` informó que no hay operaciones sin migración. El reporte [INC-07](increments/INC-07.md) registra los comandos, resultados, trazabilidad y límites.
 
 Para verificar que pytest sigue mostrando todos los IDs de los manifiestos:
 
@@ -38,7 +38,7 @@ La prueba `tests/test_requirement_traceability.py` hace la misma comprobación d
 
 ## API y demostración
 
-`uv run --frozen python ../orchestration/check_runtime_openapi.py --through INC-07` pasó y confirmó las 35 operaciones canónicas. La guía REST está en [DEMO-REST.md](../backend/docs/DEMO-REST.md).
+`uv run --frozen python ../orchestration/check_runtime_openapi.py --through INC-07` pasó y confirmó las 35 operaciones canónicas. La guía REST está en [DEMO-REST.md](../operations/DEMO-REST.md).
 
 El seed de identidades se ejecutó dos veces en `legaltech_test`, comparó conteos, revocó sesiones previas y autenticó de nuevo tras recrear FastAPI. El bootstrap rechaza bases distintas de `legaltech_demo`; una prueba confirma que no modifica la base de pruebas.
 

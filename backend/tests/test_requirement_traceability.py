@@ -11,12 +11,12 @@ from tests.traceability import TRACEABLE_REQUIREMENT_IDS
 
 def _canonical_requirement_ids() -> set[str]:
     repository_root = Path(__file__).resolve().parents[2]
-    acceptance_path = repository_root / "pruebas" / "PROTO-AT-001.json"
+    acceptance_path = repository_root / "docs" / "testing" / "specifications" / "PROTO-AT-001.json"
     acceptance = json.loads(acceptance_path.read_text(encoding="utf-8"))
     identifiers = {scenario["id"] for scenario in acceptance}
 
     for filename in ("API-NEG-001.csv", "DATA-TEST-001.csv"):
-        manifest_path = repository_root / "pruebas" / filename
+        manifest_path = repository_root / "docs" / "testing" / "specifications" / filename
         with manifest_path.open(encoding="utf-8-sig", newline="") as stream:
             identifiers.update(row["id"] for row in csv.DictReader(stream))
 

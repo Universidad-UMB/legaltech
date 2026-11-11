@@ -21,7 +21,7 @@ Iteraciones pequeñas y verificables con Git; contratos acordados antes de códi
 | INC-06 | INC-05 | Portal, suspensión, reactivación y cierre seguimiento | 5 | AT-12/13/14/17 + coverage AT-15 |
 | INC-07 | INC-00..06 | Orquestación y reporte E2E; reset seguro local; docs y evidencias | 0 nuevas | 18 AT + 36 API-N + 39 DT + RNF por evidencia |
 
-**Suma única:** 35 `operationId` asignados exactamente una vez; ver `trazabilidad/OPERACIONES-INC-001.csv`. Aunque la implementación de tests comienza en INC-00, INC-07 es la consolidación, no una excusa para diferir calidad.
+**Suma única:** 35 `operationId` asignados exactamente una vez; ver `docs/development/traceability/OPERACIONES-INC-001.csv`. Aunque la implementación de tests comienza en INC-00, INC-07 es la consolidación, no una excusa para diferir calidad.
 
 ## 3. Contrato de cada ticket
 1. Identificador, objetivo observable y componentes permitidos; RF/AT/operaciones.
@@ -75,7 +75,7 @@ La estructura se ajustará al ADR aceptado. No crear 4 capas de carpetas vacías
 ## 6. Métricas de seguimiento y evidencias
 | Métrica | Cómo calcular | Criterio |
 |---|---|---|
-| RF/AT vinculados | `trazabilidad/AT-RF-TEST-001.csv` + tests | 18/18 AT con pruebas y resultados en entrega |
+| RF/AT vinculados | `docs/development/traceability/AT-RF-TEST-001.csv` + tests | 18/18 AT con pruebas y resultados en entrega |
 | Operaciones HTTP | Archivo canónico vs app en ejecución | 35/35 operaciones cubiertas o diferencias versionadas/aceptadas |
 | Negativos seguridad | `API-NEG-001.csv` + pytest | 36 escenarios evaluados; fallos críticos bloquean |
 | Integridad/concurrencia | `DATA-TEST-001.csv` + pytest | 39 escenarios evaluados, prioridad P0 bloqueante |

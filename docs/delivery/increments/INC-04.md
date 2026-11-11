@@ -26,7 +26,7 @@
 - `tests/test_novelties_api.py`: AT-07/08, API-N16/17, DT-22/36/39, cursor, 404/403/409/422, auditoría, append-only y rollback transaccional.
 - `tests/test_runtime_contract.py`, `tests/test_postgres_schema.py`, `tests/conftest.py`: contrato OpenAPI runtime, esquema PostgreSQL y aislamiento de fixtures.
 - `README.md`: descripción de las rutas y límites del flujo humano.
-- `reports/INC-04.md`: esta evidencia.
+- `docs/delivery/increments/INC-04.md`: esta evidencia.
 
 ## Verificaciones ejecutadas
 

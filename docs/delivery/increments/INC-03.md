@@ -25,7 +25,7 @@
 - `migrations/versions/0004_comparisons_and_novelties.py`: migración versionada y reversible.
 - `tests/test_comparison_domain.py`, `tests/test_comparisons_api.py`, `tests/test_postgres_schema.py`, `tests/test_runtime_contract.py` y `tests/conftest.py`: reglas, API, concurrencia, restricciones y contrato runtime.
 - `README.md`: configuración y comportamiento de INC-03.
-- `reports/INC-03.md`: esta evidencia.
+- `docs/delivery/increments/INC-03.md`: esta evidencia.
 
 ## Verificaciones ejecutadas
 

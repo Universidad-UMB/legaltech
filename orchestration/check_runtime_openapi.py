@@ -53,7 +53,7 @@ def compare(expected: Counter, actual: Counter) -> tuple[bool,str]:
 def expected_until(increment: str, canonical: Counter) -> Counter:
     if increment not in [f'INC-{i:02d}' for i in range(8)]:
         raise ValueError(f'Incremento no reconocido: {increment}')
-    mapping = ROOT / 'trazabilidad' / 'OPERACIONES-INC-001.csv'
+    mapping = ROOT / 'docs' / 'development' / 'traceability' / 'OPERACIONES-INC-001.csv'
     result = Counter()
     with mapping.open(encoding='utf-8-sig', newline='') as handle:
         for item in csv.DictReader(handle):
