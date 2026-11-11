@@ -30,6 +30,8 @@ services:
       DATABASE_URL: postgresql+psycopg://legaltech_runtime:${POSTGRES_RUNTIME_PASSWORD}@db:5432/legaltech_demo
     ports:
       - "127.0.0.1:8001:8000"
+    volumes:
+      - ../fixtures:/fixtures:ro
     depends_on:
       db:
         condition: service_healthy

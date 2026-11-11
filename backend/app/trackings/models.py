@@ -39,6 +39,18 @@ class Tracking(Base):
         UniqueConstraint("id", "client_id", name="uq_trackings_id_client_id"),
         UniqueConstraint("id", "process_id", name="uq_trackings_id_process_id"),
         UniqueConstraint("id", "client_id", "process_id", name="uq_trackings_id_client_process"),
+        ForeignKeyConstraint(
+            ["baseline_observation_id", "process_id"],
+            ["observations.id", "observations.process_id"],
+            ondelete="RESTRICT",
+            name="fk_trackings_baseline_observation_process",
+        ),
+        ForeignKeyConstraint(
+            ["last_adopted_observation_id", "process_id"],
+            ["observations.id", "observations.process_id"],
+            ondelete="RESTRICT",
+            name="fk_trackings_last_adopted_observation_process",
+        ),
         CheckConstraint("status IN ('PENDING', 'ACTIVE', 'FINISHED')", name="status"),
         CheckConstraint(
             "(baseline_observation_id IS NULL) = (last_adopted_observation_id IS NULL)",

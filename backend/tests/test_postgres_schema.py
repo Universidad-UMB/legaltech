@@ -19,6 +19,9 @@ def test_migration_is_current_and_identity_tables_exist() -> None:
         "persons",
         "clients",
         "judicial_processes",
+        "acquisition_runs",
+        "observations",
+        "observed_actions",
         "trackings",
         "external_tracking_scopes",
         "internal_tracking_assignments",
@@ -31,7 +34,24 @@ def test_migration_is_current_and_identity_tables_exist() -> None:
     assert expected_tables.issubset(table_names)
     with TEST_ENGINE.connect() as connection:
         revision = connection.scalar(text("SELECT version_num FROM alembic_version"))
-    assert revision == "0002_clients_processes_trackings"
+    assert revision == "0003_synthetic_acquisitions"
+
+
+def test_acquisition_tables_and_sealing_triggers_exist() -> None:
+    with TEST_ENGINE.connect() as connection:
+        trigger_names = set(
+            connection.scalars(
+                text("SELECT tgname FROM pg_trigger WHERE NOT tgisinternal AND tgname LIKE 'tr_%'")
+            )
+        )
+    assert {
+        "tr_acquisition_run_finalize",
+        "tr_observation_accept",
+        "tr_observations_seal",
+        "tr_observed_action_insert",
+        "tr_observed_actions_append_only",
+        "tr_tracking_baseline_guard",
+    }.issubset(trigger_names)
 
 
 def test_runtime_database_role_has_dml_without_ddl_privileges() -> None:

@@ -7,20 +7,12 @@ from collections.abc import Generator
 import pytest
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import delete
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from starlette.testclient import TestClient
 
-from app.clients.models import Client
 from app.config import Settings
 from app.db import create_database_engine, session_factory
-from app.identity.models import Account, AccountRole, AuditEvent, AuthSession, Person
-from app.trackings.models import (
-    ExternalTrackingScope,
-    InternalTrackingAssignment,
-    JudicialProcess,
-    Tracking,
-)
 
 _settings_from_env_file = Settings()
 os.environ["APP_ENV"] = "test"
@@ -62,17 +54,12 @@ def client(db_session: Session) -> Generator[TestClient, None, None]:
 
 def _clear_identity_data() -> None:
     with TEST_MIGRATION_SESSION_FACTORY() as cleanup_session:
-        for model in (
-            AuditEvent,
-            AuthSession,
-            ExternalTrackingScope,
-            InternalTrackingAssignment,
-            AccountRole,
-            Tracking,
-            JudicialProcess,
-            Account,
-            Client,
-            Person,
-        ):
-            cleanup_session.execute(delete(model))
+        cleanup_session.execute(
+            text(
+                "TRUNCATE TABLE observed_actions, observations, acquisition_runs, "
+                "external_tracking_scopes, internal_tracking_assignments, trackings, "
+                "judicial_processes, account_roles, auth_sessions, audit_events, "
+                "accounts, clients, persons"
+            )
+        )
         cleanup_session.commit()

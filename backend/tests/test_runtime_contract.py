@@ -20,6 +20,10 @@ EXPECTED_IMPLEMENTED_OPERATIONS = {
     "createTracking": ("post", "/api/v1/internal/trackings"),
     "getTracking": ("get", "/api/v1/internal/trackings/{tracking_id}"),
     "activateTracking": ("post", "/api/v1/internal/trackings/{tracking_id}/activate"),
+    "createAcquisition": ("post", "/api/v1/internal/acquisition-runs"),
+    "getAcquisition": ("get", "/api/v1/internal/acquisition-runs/{run_id}"),
+    "getObservation": ("get", "/api/v1/internal/observations/{observation_id}"),
+    "adoptObservation": ("post", "/api/v1/internal/trackings/{tracking_id}/adoptions"),
 }
 
 
@@ -87,6 +91,26 @@ def test_inc00_runtime_routes_match_the_canonical_openapi_subset() -> None:
             "post",
             ("401", "403", "404", "409", "422"),
         ),
+        (
+            "/api/v1/internal/acquisition-runs",
+            "post",
+            ("401", "403", "404", "409", "422"),
+        ),
+        (
+            "/api/v1/internal/acquisition-runs/{run_id}",
+            "get",
+            ("401", "403", "404", "409", "422"),
+        ),
+        (
+            "/api/v1/internal/observations/{observation_id}",
+            "get",
+            ("401", "403", "404", "409", "422"),
+        ),
+        (
+            "/api/v1/internal/trackings/{tracking_id}/adoptions",
+            "post",
+            ("401", "403", "404", "409", "422"),
+        ),
     ):
         for status_code in status_codes:
             assert set(runtime["paths"][path][method]["responses"][status_code]["content"]) == {
@@ -105,6 +129,12 @@ def test_inc00_runtime_routes_match_the_canonical_openapi_subset() -> None:
         "Process",
         "TrackingCreate",
         "Tracking",
+        "AcquisitionCreate",
+        "Acquisition",
+        "Observation",
+        "ObservedAction",
+        "AdoptObservationRequest",
+        "AdoptionResult",
     ):
         assert _without_titles(runtime["components"]["schemas"][schema_name]) == _without_titles(
             canonical["components"]["schemas"][schema_name]
@@ -114,6 +144,8 @@ def test_inc00_runtime_routes_match_the_canonical_openapi_subset() -> None:
         "createClient": "ClientCreate",
         "createProcess": "ProcessCreate",
         "createTracking": "TrackingCreate",
+        "createAcquisition": "AcquisitionCreate",
+        "adoptObservation": "AdoptObservationRequest",
     }
     response_schemas = {
         "createClient": ("201", "Client"),
@@ -123,6 +155,10 @@ def test_inc00_runtime_routes_match_the_canonical_openapi_subset() -> None:
         "createTracking": ("201", "Tracking"),
         "getTracking": ("200", "Tracking"),
         "activateTracking": ("200", "Tracking"),
+        "createAcquisition": ("201", "Acquisition"),
+        "getAcquisition": ("200", "Acquisition"),
+        "getObservation": ("200", "Observation"),
+        "adoptObservation": ("200", "AdoptionResult"),
     }
     for operation_id, schema_name in request_schemas.items():
         method, path = EXPECTED_IMPLEMENTED_OPERATIONS[operation_id]
@@ -147,6 +183,12 @@ def test_inc00_runtime_routes_match_the_canonical_openapi_subset() -> None:
         ]["schema"]["$ref"]
         == "#/components/schemas/ClientCreate"
     )
+    acquisition_replay = runtime["paths"]["/api/v1/internal/acquisition-runs"]["post"]
+    assert (
+        acquisition_replay["responses"]["200"]["content"]["application/json"]["schema"]["$ref"]
+        == "#/components/schemas/Acquisition"
+    )
+    assert "Location" in acquisition_replay["responses"]["201"]["headers"]
 
 
 def test_swagger_and_openapi_routes_are_disabled_outside_local_environment(client: Any) -> None:

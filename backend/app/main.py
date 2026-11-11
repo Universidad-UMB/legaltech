@@ -8,6 +8,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
 
+from app.acquisitions.api import router as acquisitions_router
 from app.clients.api import router as clients_router
 from app.config import Settings
 from app.core.errors import ApplicationError
@@ -39,6 +40,16 @@ class LegalTechFastAPI(FastAPI):
             "/api/v1/internal/trackings/{tracking_id}/activate": {
                 "post": ("401", "403", "404", "409", "422")
             },
+            "/api/v1/internal/acquisition-runs": {"post": ("401", "403", "404", "409", "422")},
+            "/api/v1/internal/acquisition-runs/{run_id}": {
+                "get": ("401", "403", "404", "409", "422")
+            },
+            "/api/v1/internal/observations/{observation_id}": {
+                "get": ("401", "403", "404", "409", "422")
+            },
+            "/api/v1/internal/trackings/{tracking_id}/adoptions": {
+                "post": ("401", "403", "404", "409", "422")
+            },
         }
         for path, operations in problem_responses.items():
             for method, status_codes in operations.items():
@@ -53,6 +64,9 @@ class LegalTechFastAPI(FastAPI):
         for model in schemas.values():
             properties = model.get("properties", {})
             for property_schema in properties.values():
+                const_value = property_schema.pop("const", None)
+                if const_value is not None and "enum" not in property_schema:
+                    property_schema["enum"] = [const_value]
                 nullable_variants = property_schema.pop("anyOf", None)
                 if nullable_variants is not None and any(
                     variant.get("type") == "null" for variant in nullable_variants
@@ -78,6 +92,35 @@ class LegalTechFastAPI(FastAPI):
                 "baseline_observation_id": {"minLength": 1},
                 "last_adopted_observation_id": {"minLength": 1},
             },
+            "AcquisitionCreate": {
+                "process_id": {"minLength": 1},
+                "fixture_code": {"minLength": 1},
+                "request_key": {"minLength": 8, "maxLength": 100},
+            },
+            "Acquisition": {
+                "id": {"minLength": 1},
+                "process_id": {"minLength": 1},
+                "source_code": {"minLength": 1},
+                "status": {"minLength": 1},
+                "request_key": {"minLength": 1},
+                "observation_id": {"minLength": 1},
+                "error_code": {"minLength": 1},
+                "coverage_note": {"minLength": 0},
+            },
+            "ObservedAction": {
+                "action_key": {"minLength": 1},
+                "description": {"minLength": 1},
+                "occurred_on": {"minLength": 1},
+            },
+            "Observation": {
+                "id": {"minLength": 1},
+                "process_id": {"minLength": 1},
+                "quality": {"minLength": 1},
+                "observed_at": {"minLength": 1},
+                "coverage_note": {"minLength": 0},
+            },
+            "AdoptObservationRequest": {"observation_id": {"minLength": 1}},
+            "AdoptionResult": {"outcome": {"minLength": 1}},
         }
         for schema_name, constraints in schema_constraints.items():
             properties = schemas.get(schema_name, {}).get("properties", {})
@@ -156,6 +199,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(identity_router)
     app.include_router(clients_router)
     app.include_router(trackings_router)
+    app.include_router(acquisitions_router)
 
     @app.middleware("http")
     async def attach_request_id(

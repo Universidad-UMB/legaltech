@@ -1,6 +1,7 @@
 from alembic import context
 from sqlalchemy import create_engine, pool
 
+from app.acquisitions import models as acquisition_models  # noqa: F401
 from app.clients import models as client_models  # noqa: F401
 from app.config import Settings
 from app.db import Base

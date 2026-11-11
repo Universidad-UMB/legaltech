@@ -1,6 +1,6 @@
-# LegalTech backend — INC-00 e INC-01
+# LegalTech backend — INC-00 a INC-02
 
-INC-00 provides the local FastAPI shell, identity and session handling, PostgreSQL migration, synthetic identity bootstrap, and quality checks. INC-01 adds client, judicial process, and tracking management with contextual internal authorization. Implemented operation IDs are `healthz`, `login`, `logout`, `getPrincipal`, `createClient`, `getClient`, `createProcess`, `getProcess`, `createTracking`, `getTracking`, and `activateTracking`.
+INC-00 provides the local FastAPI shell, identity and session handling, PostgreSQL migration, synthetic identity bootstrap, and quality checks. INC-01 adds client, judicial process, and tracking management with contextual internal authorization. INC-02 adds synthetic fixture acquisitions, sealed observations, and tracking baseline adoption. Implemented operation IDs are `healthz`, `login`, `logout`, `getPrincipal`, `createClient`, `getClient`, `createProcess`, `getProcess`, `createTracking`, `getTracking`, `activateTracking`, `createAcquisition`, `getAcquisition`, `getObservation`, and `adoptObservation`.
 
 The bootstrap creates synthetic people, Alfa/Beta clients, accounts, and roles. Processes and trackings are created through the API; internal assignments and external scopes remain local seed data and have no API mutation routes.
 
@@ -38,6 +38,12 @@ uv run python -m scripts.seed_authorization_context
 
 This seed is restricted to local `legaltech_demo`, adds only missing assignments/scopes, and does not reactivate revoked rows or reset data. It validates tracking codes and client/process references before committing. The API has no assignment or scope mutation routes.
 
+## INC-02 synthetic acquisitions
+
+`POST /api/v1/internal/acquisition-runs` accepts a process UUID, one of `OBS_001`, `OBS_002`, `FAILED`, or `INCOMPLETE`, and a `request_key`. It only uses the checked-in synthetic fixture bundle mounted read-only at `/fixtures` in Compose; no network source is configured. `ADMIN` or `ANALYST` must have an active assignment to an active tracking for the active client and requested process. Repeating the same key and request returns the existing run with HTTP 200; reusing the key for a different process or fixture returns 409.
+
+Successful fixtures create immutable observations with append-only actions and a database seal. `FAILED` and `INCOMPLETE` runs retain their coverage result and do not create an observation. `GET /acquisition-runs/{run_id}` and `GET /observations/{observation_id}` require an internal account assigned to a tracking on the process. `POST /trackings/{tracking_id}/adoptions` is limited to an assigned analyst: the first comparable, sealed observation sets baseline and last-adopted references; an exact retry returns `ALREADY_ADOPTED`. A later observation returns 409 until a comparison and evaluation exist, so this increment cannot advance a tracking past an unevaluated change.
+
 The local Swagger UI is available at `http://127.0.0.1:8001/docs`. `/healthz` confirms the API process is serving HTTP and intentionally does not claim database health.
 
 ## PostgreSQL tests and migrations
@@ -52,7 +58,7 @@ uv run python -m scripts.alembic_test upgrade head
 uv run pytest -q
 ```
 
-The migration test fixture also applies Alembic `head` before tests. Tests connect as `legaltech_runtime` to `legaltech_test`, clear only the identity rows within that database, and verify real PostgreSQL constraints and runtime privileges. They never use `legaltech_demo`.
+The migration test fixture also applies Alembic `head` before tests. Tests connect as `legaltech_runtime` to `legaltech_test`; setup resets only tables in that isolated test database and verifies real PostgreSQL constraints and runtime privileges. They never use `legaltech_demo`.
 
 ## Quality checks
 
