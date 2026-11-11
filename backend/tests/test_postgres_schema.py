@@ -26,6 +26,8 @@ def test_migration_is_current_and_identity_tables_exist() -> None:
         "technical_changes",
         "tracking_evaluations",
         "novelties",
+        "novelty_reviews",
+        "state_transitions",
         "trackings",
         "external_tracking_scopes",
         "internal_tracking_assignments",
@@ -38,7 +40,7 @@ def test_migration_is_current_and_identity_tables_exist() -> None:
     assert expected_tables.issubset(table_names)
     with TEST_ENGINE.connect() as connection:
         revision = connection.scalar(text("SELECT version_num FROM alembic_version"))
-    assert revision == "0004_comparisons_and_novelties"
+    assert revision == "0005_human_novelty_reviews"
 
 
 def test_comparison_and_novelty_constraints_exist() -> None:
@@ -48,6 +50,7 @@ def test_comparison_and_novelty_constraints_exist() -> None:
         "technical_changes": {"uq_technical_changes_logical"},
         "tracking_evaluations": {"uq_tracking_evaluations_tracking_comparison"},
         "novelties": {"uq_novelties_tracking_change"},
+        "novelty_reviews": {"uq_novelty_reviews_sequence"},
     }
     for table, expected_names in expected_unique_constraints.items():
         actual_names = {
@@ -70,6 +73,8 @@ def test_acquisition_tables_and_sealing_triggers_exist() -> None:
         "tr_observed_action_insert",
         "tr_observed_actions_append_only",
         "tr_tracking_baseline_guard",
+        "tr_novelty_reviews_append_only",
+        "tr_state_transitions_append_only",
     }.issubset(trigger_names)
 
 
@@ -84,7 +89,15 @@ def test_runtime_database_role_has_dml_without_ddl_privileges() -> None:
                 "has_table_privilege(current_user, "
                 "'public.audit_events', 'UPDATE') AS can_update_audit, "
                 "has_table_privilege(current_user, "
-                "'public.audit_events', 'DELETE') AS can_delete_audit"
+                "'public.audit_events', 'DELETE') AS can_delete_audit, "
+                "has_table_privilege(current_user, "
+                "'public.novelty_reviews', 'UPDATE') AS can_update_reviews, "
+                "has_table_privilege(current_user, "
+                "'public.novelty_reviews', 'DELETE') AS can_delete_reviews, "
+                "has_table_privilege(current_user, "
+                "'public.state_transitions', 'UPDATE') AS can_update_transitions, "
+                "has_table_privilege(current_user, "
+                "'public.state_transitions', 'DELETE') AS can_delete_transitions"
             )
         ).one()
     assert row.current_user == "legaltech_runtime"
@@ -92,6 +105,10 @@ def test_runtime_database_role_has_dml_without_ddl_privileges() -> None:
     assert row.can_read_accounts is True
     assert row.can_update_audit is False
     assert row.can_delete_audit is False
+    assert row.can_update_reviews is False
+    assert row.can_delete_reviews is False
+    assert row.can_update_transitions is False
+    assert row.can_delete_transitions is False
 
 
 def test_database_rejects_external_account_without_client(db_session: Session) -> None:

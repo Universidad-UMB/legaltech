@@ -1,6 +1,6 @@
-# LegalTech backend — INC-00 a INC-03
+# LegalTech backend — INC-00 a INC-04
 
-INC-00 provides the local FastAPI shell, identity and session handling, PostgreSQL migration, synthetic identity bootstrap, and quality checks. INC-01 adds client, judicial process, and tracking management with contextual internal authorization. INC-02 adds synthetic fixture acquisitions, sealed observations, and tracking baseline adoption. Implemented operation IDs are `healthz`, `login`, `logout`, `getPrincipal`, `createClient`, `getClient`, `createProcess`, `getProcess`, `createTracking`, `getTracking`, `activateTracking`, `createAcquisition`, `getAcquisition`, `getObservation`, and `adoptObservation`.
+INC-00 provides the local FastAPI shell, identity and session handling, PostgreSQL migration, synthetic identity bootstrap, and quality checks. INC-01 adds client, judicial process, and tracking management with contextual internal authorization. INC-02 adds synthetic fixture acquisitions, sealed observations, and tracking baseline adoption. INC-03 adds comparisons and eligibility evaluation. INC-04 adds human novelty reviews. Implemented operation IDs are `healthz`, `login`, `logout`, `getPrincipal`, `createClient`, `getClient`, `createProcess`, `getProcess`, `createTracking`, `getTracking`, `activateTracking`, `createAcquisition`, `getAcquisition`, `getObservation`, `adoptObservation`, `compareObservations`, `getComparison`, `evaluateComparison`, `listNovelties`, `getNovelty`, `startOperativeReview`, `escalateNovelty`, and `recordLegalReview`.
 
 The bootstrap creates synthetic people, Alfa/Beta clients, accounts, and roles. Processes and trackings are created through the API; internal assignments and external scopes remain local seed data and have no API mutation routes.
 
@@ -55,6 +55,14 @@ The API compares sealed snapshots from the same process by fixture action key. I
 `POST /api/v1/internal/trackings/{tracking_id}/evaluations` locks the assigned active tracking, requires its last adopted snapshot to be the comparison's old snapshot, and requires the new snapshot to be the next comparable snapshot. It creates the evaluation and eligible novelties in one transaction. Repeating the evaluation returns the same IDs. The first adopted snapshot remains a baseline and does not create a retrospective novelty.
 
 The adoption route now advances an existing baseline only after a persisted evaluation for the exact old/new pair. It rejects a backward move, a skipped comparable snapshot, an unassessed pair, and a pair with a non-comparable result. The tracking row lock serializes evaluation and adoption attempts; unique constraints protect retries across database sessions.
+
+## INC-04 human novelty review
+
+Internal users assigned to a tracking can list its novelties and read one novelty. The list uses `limit` and an opaque keyset `cursor`; responses expose only the canonical novelty metadata and never return review notes.
+
+Only an assigned `ANALYST` can start an operative review and escalate it with a decision and synthetic evidence note. Only an assigned `LAWYER` can record the human legal review after escalation. The lawyer must belong to a different `person_id` than the operative reviewer, including when a person has multiple accounts. Actor identity is taken from the authenticated session; actor fields in request bodies are rejected.
+
+Protected reads also record sanitized success audits. Each successful state change locks the novelty and commits its status update, actor-attributed `state_transitions` row, and audit event together. Escalations and legal reviews also append an immutable `novelty_reviews` row with the supplied decision and evidence note. Illegal or repeated state changes return `409`; a role without access returns `403`, and an unassigned internal account receives a generic `404`. These endpoints record fictional human decisions only; they do not calculate legal deadlines or provide legal advice.
 
 ## PostgreSQL tests and migrations
 

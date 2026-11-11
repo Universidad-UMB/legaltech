@@ -59,6 +59,19 @@ class LegalTechFastAPI(FastAPI):
             "/api/v1/internal/trackings/{tracking_id}/evaluations": {
                 "post": ("401", "403", "404", "409", "422")
             },
+            "/api/v1/internal/trackings/{tracking_id}/novelties": {
+                "get": ("401", "403", "404", "422")
+            },
+            "/api/v1/internal/novelties/{novelty_id}": {"get": ("401", "403", "404", "409", "422")},
+            "/api/v1/internal/novelties/{novelty_id}/start-operative-review": {
+                "post": ("401", "403", "404", "409", "422")
+            },
+            "/api/v1/internal/novelties/{novelty_id}/escalate": {
+                "post": ("401", "403", "404", "409", "422")
+            },
+            "/api/v1/internal/novelties/{novelty_id}/legal-review": {
+                "post": ("401", "403", "404", "409", "422")
+            },
         }
         for path, operations in problem_responses.items():
             for method, status_codes in operations.items():
@@ -157,6 +170,22 @@ class LegalTechFastAPI(FastAPI):
                 "decision": {"minLength": 1},
                 "reason": {"minLength": 1},
             },
+            "Novelty": {
+                "id": {"minLength": 1},
+                "novelty_code": {"minLength": 1},
+                "tracking_id": {"minLength": 1},
+                "status": {"minLength": 1},
+                "change_id": {"minLength": 1},
+            },
+            "NoveltyList": {"next_cursor": {"minLength": 1}},
+            "OperativeEscalation": {
+                "decision": {"minLength": 8, "maxLength": 2000},
+                "evidence_note": {"minLength": 8, "maxLength": 2000},
+            },
+            "LegalReview": {
+                "decision": {"minLength": 8, "maxLength": 2000},
+                "evidence_note": {"minLength": 8, "maxLength": 2000},
+            },
         }
         for schema_name, constraints in schema_constraints.items():
             properties = schemas.get(schema_name, {}).get("properties", {})
@@ -181,6 +210,16 @@ class LegalTechFastAPI(FastAPI):
                     continue
                 for parameter in operation.get("parameters", []):
                     parameter_schema = parameter.get("schema", {})
+                    if parameter.get("in") == "query":
+                        nullable_variants = parameter_schema.pop("anyOf", None)
+                        if nullable_variants is not None:
+                            non_nullable = [
+                                variant
+                                for variant in nullable_variants
+                                if variant.get("type") != "null"
+                            ]
+                            if len(non_nullable) == 1:
+                                parameter_schema.update(non_nullable[0])
                     if parameter_schema.get("format") == "uuid":
                         parameter_schema.setdefault("minLength", 1)
         return schema

@@ -27,6 +27,14 @@ EXPECTED_IMPLEMENTED_OPERATIONS = {
     "compareObservations": ("post", "/api/v1/internal/comparisons"),
     "getComparison": ("get", "/api/v1/internal/comparisons/{comparison_id}"),
     "evaluateComparison": ("post", "/api/v1/internal/trackings/{tracking_id}/evaluations"),
+    "listNovelties": ("get", "/api/v1/internal/trackings/{tracking_id}/novelties"),
+    "getNovelty": ("get", "/api/v1/internal/novelties/{novelty_id}"),
+    "startOperativeReview": (
+        "post",
+        "/api/v1/internal/novelties/{novelty_id}/start-operative-review",
+    ),
+    "escalateNovelty": ("post", "/api/v1/internal/novelties/{novelty_id}/escalate"),
+    "recordLegalReview": ("post", "/api/v1/internal/novelties/{novelty_id}/legal-review"),
 }
 
 
@@ -125,6 +133,27 @@ def test_inc00_runtime_routes_match_the_canonical_openapi_subset() -> None:
             "post",
             ("401", "403", "404", "409", "422"),
         ),
+        (
+            "/api/v1/internal/trackings/{tracking_id}/novelties",
+            "get",
+            ("401", "403", "404", "422"),
+        ),
+        ("/api/v1/internal/novelties/{novelty_id}", "get", ("401", "403", "404", "409", "422")),
+        (
+            "/api/v1/internal/novelties/{novelty_id}/start-operative-review",
+            "post",
+            ("401", "403", "404", "409", "422"),
+        ),
+        (
+            "/api/v1/internal/novelties/{novelty_id}/escalate",
+            "post",
+            ("401", "403", "404", "409", "422"),
+        ),
+        (
+            "/api/v1/internal/novelties/{novelty_id}/legal-review",
+            "post",
+            ("401", "403", "404", "409", "422"),
+        ),
     ):
         for status_code in status_codes:
             assert set(runtime["paths"][path][method]["responses"][status_code]["content"]) == {
@@ -154,6 +183,10 @@ def test_inc00_runtime_routes_match_the_canonical_openapi_subset() -> None:
         "Comparison",
         "EvaluationCreate",
         "Evaluation",
+        "Novelty",
+        "NoveltyList",
+        "OperativeEscalation",
+        "LegalReview",
     ):
         assert _without_titles(runtime["components"]["schemas"][schema_name]) == _without_titles(
             canonical["components"]["schemas"][schema_name]
@@ -167,6 +200,8 @@ def test_inc00_runtime_routes_match_the_canonical_openapi_subset() -> None:
         "adoptObservation": "AdoptObservationRequest",
         "compareObservations": "ComparisonCreate",
         "evaluateComparison": "EvaluationCreate",
+        "escalateNovelty": "OperativeEscalation",
+        "recordLegalReview": "LegalReview",
     }
     response_schemas = {
         "createClient": ("201", "Client"),
@@ -183,6 +218,11 @@ def test_inc00_runtime_routes_match_the_canonical_openapi_subset() -> None:
         "compareObservations": ("201", "Comparison"),
         "getComparison": ("200", "Comparison"),
         "evaluateComparison": ("201", "Evaluation"),
+        "listNovelties": ("200", "NoveltyList"),
+        "getNovelty": ("200", "Novelty"),
+        "startOperativeReview": ("200", "Novelty"),
+        "escalateNovelty": ("200", "Novelty"),
+        "recordLegalReview": ("200", "Novelty"),
     }
     for operation_id, schema_name in request_schemas.items():
         method, path = EXPECTED_IMPLEMENTED_OPERATIONS[operation_id]
@@ -198,6 +238,25 @@ def test_inc00_runtime_routes_match_the_canonical_openapi_subset() -> None:
             operation["responses"][status_code]["content"]["application/json"]["schema"]["$ref"]
             == f"#/components/schemas/{schema_name}"
         )
+    assert (
+        "requestBody"
+        not in runtime["paths"]["/api/v1/internal/novelties/{novelty_id}/start-operative-review"][
+            "post"
+        ]
+    )
+    list_parameters = {
+        parameter["name"]: _without_titles(parameter["schema"])
+        for parameter in runtime["paths"]["/api/v1/internal/trackings/{tracking_id}/novelties"][
+            "get"
+        ]["parameters"]
+    }
+    assert list_parameters["limit"] == {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 100,
+        "default": 25,
+    }
+    assert list_parameters["cursor"] == {"type": "string", "minLength": 1}
     for operation_id in set(EXPECTED_IMPLEMENTED_OPERATIONS) - {"healthz", "login"}:
         method, path = EXPECTED_IMPLEMENTED_OPERATIONS[operation_id]
         assert runtime["paths"][path][method]["security"] == [{"OpaqueBearer": []}]

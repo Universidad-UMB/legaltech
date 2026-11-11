@@ -4,6 +4,7 @@ from uuid import UUID
 from sqlalchemy import (
     CheckConstraint,
     DateTime,
+    ForeignKey,
     ForeignKeyConstraint,
     Index,
     String,
@@ -122,5 +123,115 @@ class Novelty(Base):
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
     updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class NoveltyReview(Base):
+    __tablename__ = "novelty_reviews"
+    __table_args__ = (
+        UniqueConstraint(
+            "novelty_id", "review_kind", "review_sequence", name="uq_novelty_reviews_sequence"
+        ),
+        ForeignKeyConstraint(
+            ["actor_account_id", "actor_person_id"],
+            ["accounts.id", "accounts.person_id"],
+            ondelete="RESTRICT",
+            name="fk_novelty_reviews_actor_person",
+        ),
+        CheckConstraint("review_kind IN ('OPERATIVE', 'LEGAL')", name="review_kind"),
+        CheckConstraint("review_sequence > 0", name="review_sequence_positive"),
+        CheckConstraint("btrim(decision) <> ''", name="decision_nonblank"),
+        CheckConstraint("btrim(evidence_note) <> ''", name="evidence_note_nonblank"),
+        Index("ix_novelty_reviews_novelty_kind", "novelty_id", "review_kind"),
+    )
+
+    id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True)
+    novelty_id: Mapped[UUID] = mapped_column(
+        Uuid(as_uuid=True), ForeignKey("novelties.id", ondelete="RESTRICT"), nullable=False
+    )
+    review_kind: Mapped[str] = mapped_column(String(16), nullable=False)
+    review_sequence: Mapped[int] = mapped_column(nullable=False, server_default=text("1"))
+    actor_account_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False)
+    actor_person_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False)
+    decision: Mapped[str] = mapped_column(Text, nullable=False)
+    evidence_note: Mapped[str] = mapped_column(Text, nullable=False)
+    reviewed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class StateTransition(Base):
+    __tablename__ = "state_transitions"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["actor_account_id", "actor_person_id"],
+            ["accounts.id", "accounts.person_id"],
+            ondelete="RESTRICT",
+            name="fk_state_transitions_actor_person",
+        ),
+        CheckConstraint("resource_type IN ('CLIENT', 'TRACKING', 'NOVELTY')", name="resource_type"),
+        CheckConstraint("actor_kind IN ('USER', 'SYSTEM')", name="actor_kind"),
+        CheckConstraint(
+            "((client_id IS NOT NULL)::int + (tracking_id IS NOT NULL)::int + "
+            "(novelty_id IS NOT NULL)::int + (version_id IS NOT NULL)::int) = 1",
+            name="exactly_one_resource",
+        ),
+        CheckConstraint(
+            "(resource_type = 'CLIENT' AND client_id IS NOT NULL) OR "
+            "(resource_type = 'TRACKING' AND tracking_id IS NOT NULL) OR "
+            "(resource_type = 'NOVELTY' AND novelty_id IS NOT NULL)",
+            name="resource_type_matches_id",
+        ),
+        CheckConstraint(
+            "(actor_kind = 'USER' AND actor_account_id IS NOT NULL "
+            "AND actor_person_id IS NOT NULL) "
+            "OR (actor_kind = 'SYSTEM' AND actor_account_id IS NULL AND actor_person_id IS NULL)",
+            name="actor_identity",
+        ),
+        CheckConstraint("btrim(reason) <> ''", name="reason_nonblank"),
+        ForeignKeyConstraint(
+            ["client_id"], ["clients.id"], ondelete="RESTRICT", name="fk_state_transitions_client"
+        ),
+        ForeignKeyConstraint(
+            ["tracking_id"],
+            ["trackings.id"],
+            ondelete="RESTRICT",
+            name="fk_state_transitions_tracking",
+        ),
+        ForeignKeyConstraint(
+            ["novelty_id"],
+            ["novelties.id"],
+            ondelete="RESTRICT",
+            name="fk_state_transitions_novelty",
+        ),
+        Index(
+            "ix_state_transitions_tracking_occurred",
+            "tracking_id",
+            "occurred_at",
+            postgresql_where=text("tracking_id IS NOT NULL"),
+        ),
+        Index(
+            "ix_state_transitions_novelty_occurred",
+            "novelty_id",
+            "occurred_at",
+            postgresql_where=text("novelty_id IS NOT NULL"),
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True)
+    resource_type: Mapped[str] = mapped_column(String(24), nullable=False)
+    client_id: Mapped[UUID | None] = mapped_column(Uuid(as_uuid=True), nullable=True)
+    tracking_id: Mapped[UUID | None] = mapped_column(Uuid(as_uuid=True), nullable=True)
+    novelty_id: Mapped[UUID | None] = mapped_column(Uuid(as_uuid=True), nullable=True)
+    version_id: Mapped[UUID | None] = mapped_column(Uuid(as_uuid=True), nullable=True)
+    from_state: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    to_state: Mapped[str] = mapped_column(String(40), nullable=False)
+    actor_account_id: Mapped[UUID | None] = mapped_column(Uuid(as_uuid=True), nullable=True)
+    actor_person_id: Mapped[UUID | None] = mapped_column(Uuid(as_uuid=True), nullable=True)
+    actor_kind: Mapped[str] = mapped_column(String(8), nullable=False)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    request_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False)
+    occurred_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )

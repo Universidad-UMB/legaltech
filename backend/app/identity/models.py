@@ -34,6 +34,7 @@ class Account(Base):
     __tablename__ = "accounts"
     __table_args__ = (
         UniqueConstraint("id", "account_kind", name="uq_accounts_id_account_kind"),
+        UniqueConstraint("id", "person_id", name="uq_accounts_id_person_id"),
         UniqueConstraint("id", "client_id", "account_kind", name="uq_accounts_id_client_kind"),
         CheckConstraint("account_kind IN ('INTERNAL', 'EXTERNAL')", name="account_kind"),
         CheckConstraint("status IN ('ACTIVE', 'DISABLED')", name="status"),
