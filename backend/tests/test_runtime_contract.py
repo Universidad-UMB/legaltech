@@ -15,11 +15,14 @@ EXPECTED_IMPLEMENTED_OPERATIONS = {
     "getPrincipal": ("get", "/api/v1/auth/me"),
     "createClient": ("post", "/api/v1/internal/clients"),
     "getClient": ("get", "/api/v1/internal/clients/{client_id}"),
+    "suspendClient": ("post", "/api/v1/internal/clients/{client_id}/suspend"),
+    "reactivateClient": ("post", "/api/v1/internal/clients/{client_id}/reactivate"),
     "createProcess": ("post", "/api/v1/internal/processes"),
     "getProcess": ("get", "/api/v1/internal/processes/{process_id}"),
     "createTracking": ("post", "/api/v1/internal/trackings"),
     "getTracking": ("get", "/api/v1/internal/trackings/{tracking_id}"),
     "activateTracking": ("post", "/api/v1/internal/trackings/{tracking_id}/activate"),
+    "finishTracking": ("post", "/api/v1/internal/trackings/{tracking_id}/finish"),
     "createAcquisition": ("post", "/api/v1/internal/acquisition-runs"),
     "getAcquisition": ("get", "/api/v1/internal/acquisition-runs/{run_id}"),
     "getObservation": ("get", "/api/v1/internal/observations/{observation_id}"),
@@ -56,6 +59,11 @@ EXPECTED_IMPLEMENTED_OPERATIONS = {
     "publishPublicationVersion": (
         "post",
         "/api/v1/internal/publication-versions/{version_id}/publish",
+    ),
+    "portalTrackings": ("get", "/api/v1/portal/trackings"),
+    "portalCurrentPublication": (
+        "get",
+        "/api/v1/portal/trackings/{tracking_id}/current-publication",
     ),
 }
 
@@ -107,6 +115,16 @@ def test_inc00_runtime_routes_match_the_canonical_openapi_subset() -> None:
             "get",
             ("401", "403", "404", "409", "422"),
         ),
+        (
+            "/api/v1/internal/clients/{client_id}/suspend",
+            "post",
+            ("401", "403", "404", "409", "422"),
+        ),
+        (
+            "/api/v1/internal/clients/{client_id}/reactivate",
+            "post",
+            ("401", "403", "404", "409", "422"),
+        ),
         ("/api/v1/internal/processes", "post", ("401", "403", "409", "422")),
         (
             "/api/v1/internal/processes/{process_id}",
@@ -121,6 +139,11 @@ def test_inc00_runtime_routes_match_the_canonical_openapi_subset() -> None:
         ),
         (
             "/api/v1/internal/trackings/{tracking_id}/activate",
+            "post",
+            ("401", "403", "404", "409", "422"),
+        ),
+        (
+            "/api/v1/internal/trackings/{tracking_id}/finish",
             "post",
             ("401", "403", "404", "409", "422"),
         ),
@@ -207,6 +230,12 @@ def test_inc00_runtime_routes_match_the_canonical_openapi_subset() -> None:
             "post",
             ("401", "403", "404", "409", "422"),
         ),
+        ("/api/v1/portal/trackings", "get", ("401", "403", "422")),
+        (
+            "/api/v1/portal/trackings/{tracking_id}/current-publication",
+            "get",
+            ("401", "403", "404", "422"),
+        ),
     ):
         for status_code in status_codes:
             assert set(runtime["paths"][path][method]["responses"][status_code]["content"]) == {
@@ -221,6 +250,7 @@ def test_inc00_runtime_routes_match_the_canonical_openapi_subset() -> None:
     for schema_name in (
         "ClientCreate",
         "Client",
+        "ReasonRequest",
         "ProcessCreate",
         "Process",
         "TrackingCreate",
@@ -245,6 +275,10 @@ def test_inc00_runtime_routes_match_the_canonical_openapi_subset() -> None:
         "Publication",
         "PublicationVersion",
         "ApprovalRequest",
+        "PortalTracking",
+        "PortalTrackingList",
+        "PortalPublication",
+        "PortalPublicationResult",
     ):
         assert _without_titles(runtime["components"]["schemas"][schema_name]) == _without_titles(
             canonical["components"]["schemas"][schema_name]
@@ -252,6 +286,8 @@ def test_inc00_runtime_routes_match_the_canonical_openapi_subset() -> None:
 
     request_schemas = {
         "createClient": "ClientCreate",
+        "suspendClient": "ReasonRequest",
+        "reactivateClient": "ReasonRequest",
         "createProcess": "ProcessCreate",
         "createTracking": "TrackingCreate",
         "createAcquisition": "AcquisitionCreate",
@@ -263,15 +299,19 @@ def test_inc00_runtime_routes_match_the_canonical_openapi_subset() -> None:
         "createPublication": "PublicationCreate",
         "createPublicationVersion": "VersionCreate",
         "decidePublicationVersion": "ApprovalRequest",
+        "finishTracking": "ReasonRequest",
     }
     response_schemas = {
         "createClient": ("201", "Client"),
         "getClient": ("200", "Client"),
+        "suspendClient": ("200", "Client"),
+        "reactivateClient": ("200", "Client"),
         "createProcess": ("201", "Process"),
         "getProcess": ("200", "Process"),
         "createTracking": ("201", "Tracking"),
         "getTracking": ("200", "Tracking"),
         "activateTracking": ("200", "Tracking"),
+        "finishTracking": ("200", "Tracking"),
         "createAcquisition": ("201", "Acquisition"),
         "getAcquisition": ("200", "Acquisition"),
         "getObservation": ("200", "Observation"),
@@ -291,6 +331,8 @@ def test_inc00_runtime_routes_match_the_canonical_openapi_subset() -> None:
         "submitPublicationVersion": ("200", "PublicationVersion"),
         "decidePublicationVersion": ("200", "PublicationVersion"),
         "publishPublicationVersion": ("200", "PublicationVersion"),
+        "portalTrackings": ("200", "PortalTrackingList"),
+        "portalCurrentPublication": ("200", "PortalPublicationResult"),
     }
     for operation_id, schema_name in request_schemas.items():
         method, path = EXPECTED_IMPLEMENTED_OPERATIONS[operation_id]
@@ -325,6 +367,14 @@ def test_inc00_runtime_routes_match_the_canonical_openapi_subset() -> None:
         "default": 25,
     }
     assert list_parameters["cursor"] == {"type": "string", "minLength": 1}
+    portal_list_parameters = {
+        parameter["name"]: _without_titles(parameter["schema"])
+        for parameter in runtime["paths"]["/api/v1/portal/trackings"]["get"]["parameters"]
+    }
+    assert portal_list_parameters == {
+        "limit": list_parameters["limit"],
+        "cursor": list_parameters["cursor"],
+    }
     for operation_id in set(EXPECTED_IMPLEMENTED_OPERATIONS) - {"healthz", "login"}:
         method, path = EXPECTED_IMPLEMENTED_OPERATIONS[operation_id]
         assert runtime["paths"][path][method]["security"] == [{"OpaqueBearer": []}]

@@ -109,3 +109,8 @@ def find_process(session: Session, process_id: UUID) -> JudicialProcess | None:
 def activate_tracking(tracking: Tracking) -> None:
     tracking.status = "ACTIVE"
     tracking.updated_at = datetime.now(UTC)
+
+
+def finish_tracking(tracking: Tracking) -> None:
+    tracking.status = "FINISHED"
+    tracking.updated_at = datetime.now(UTC)

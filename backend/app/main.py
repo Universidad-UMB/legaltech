@@ -19,6 +19,7 @@ from app.identity.domain import AuthenticationFailed, RateLimited
 from app.identity.rate_limit import LoginRateLimiter
 from app.identity.service import IdentityService
 from app.novelties.api import router as novelties_router
+from app.portal.api import router as portal_router
 from app.publications.api import router as publications_router
 from app.trackings.api import router as trackings_router
 
@@ -34,6 +35,12 @@ class LegalTechFastAPI(FastAPI):
             "/api/v1/auth/me": {"get": ("401",)},
             "/api/v1/internal/clients": {"post": ("401", "403", "409", "422")},
             "/api/v1/internal/clients/{client_id}": {"get": ("401", "403", "404", "409", "422")},
+            "/api/v1/internal/clients/{client_id}/suspend": {
+                "post": ("401", "403", "404", "409", "422")
+            },
+            "/api/v1/internal/clients/{client_id}/reactivate": {
+                "post": ("401", "403", "404", "409", "422")
+            },
             "/api/v1/internal/processes": {"post": ("401", "403", "409", "422")},
             "/api/v1/internal/processes/{process_id}": {"get": ("401", "403", "404", "409", "422")},
             "/api/v1/internal/trackings": {"post": ("401", "403", "404", "409", "422")},
@@ -41,6 +48,9 @@ class LegalTechFastAPI(FastAPI):
                 "get": ("401", "403", "404", "409", "422")
             },
             "/api/v1/internal/trackings/{tracking_id}/activate": {
+                "post": ("401", "403", "404", "409", "422")
+            },
+            "/api/v1/internal/trackings/{tracking_id}/finish": {
                 "post": ("401", "403", "404", "409", "422")
             },
             "/api/v1/internal/acquisition-runs": {"post": ("401", "403", "404", "409", "422")},
@@ -91,6 +101,10 @@ class LegalTechFastAPI(FastAPI):
             },
             "/api/v1/internal/publication-versions/{version_id}/publish": {
                 "post": ("401", "403", "404", "409", "422")
+            },
+            "/api/v1/portal/trackings": {"get": ("401", "403", "422")},
+            "/api/v1/portal/trackings/{tracking_id}/current-publication": {
+                "get": ("401", "403", "404", "422")
             },
         }
         for path, operations in problem_responses.items():
@@ -237,6 +251,16 @@ class LegalTechFastAPI(FastAPI):
                 "verdict": {"minLength": 1},
                 "justification": {"minLength": 8, "maxLength": 2000},
             },
+            "PortalTracking": {
+                "id": {"minLength": 1},
+                "coverage_status": {"minLength": 1},
+            },
+            "PortalTrackingList": {"next_cursor": {"minLength": 1}},
+            "PortalPublication": {
+                "version_id": {"minLength": 1},
+                "published_at": {"minLength": 1},
+            },
+            "PortalPublicationResult": {"coverage_status": {"minLength": 1}},
         }
         for schema_name, constraints in schema_constraints.items():
             properties = schemas.get(schema_name, {}).get("properties", {})
@@ -304,13 +328,15 @@ def _problem(
     headers: Mapping[str, str] | None = None,
 ) -> JSONResponse:
     request_id = getattr(request.state, "request_id", uuid4())
+    route_path = getattr(request.scope.get("route"), "path", None)
+    instance = route_path if isinstance(route_path, str) else request.url.path
     body = {
         "type": "about:blank",
         "title": title,
         "status": status,
         "detail": detail,
         "request_id": str(request_id),
-        "instance": request.url.path,
+        "instance": instance,
     }
     response_headers = {"X-Request-ID": str(request_id)}
     if headers:
@@ -353,6 +379,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(comparisons_router)
     app.include_router(novelties_router)
     app.include_router(publications_router)
+    app.include_router(portal_router)
 
     @app.middleware("http")
     async def attach_request_id(

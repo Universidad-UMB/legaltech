@@ -3,6 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Request, Response
 
+from app.clients.schemas import ReasonRequest
 from app.core.dependencies import DatabaseSession
 from app.identity.api import CurrentSession
 from app.identity.schemas import Problem
@@ -165,4 +166,35 @@ def activate_tracking(
         status=activated.status,  # type: ignore[arg-type]
         baseline_observation_id=activated.baseline_observation_id,
         last_adopted_observation_id=activated.last_adopted_observation_id,
+    )
+
+
+@router.post(
+    "/trackings/{tracking_id}/finish",
+    response_model=Tracking,
+    operation_id="finishTracking",
+    responses={200: {"description": "Tracking finished."}, **_problem_responses},
+)
+def finish_tracking(
+    tracking_id: UUID,
+    payload: ReasonRequest,
+    request: Request,
+    session: DatabaseSession,
+    current: CurrentSession,
+) -> Tracking:
+    finished = TrackingService().finish_tracking(
+        session,
+        principal=current.principal,
+        request_id=request.state.request_id,
+        tracking_id=tracking_id,
+        reason=payload.reason,
+    )
+    return Tracking(
+        id=finished.id,
+        tracking_code=finished.tracking_code,
+        client_id=finished.client_id,
+        process_id=finished.process_id,
+        status=finished.status,  # type: ignore[arg-type]
+        baseline_observation_id=finished.baseline_observation_id,
+        last_adopted_observation_id=finished.last_adopted_observation_id,
     )

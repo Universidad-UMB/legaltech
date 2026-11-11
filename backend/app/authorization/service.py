@@ -3,7 +3,11 @@ from uuid import UUID, uuid4
 
 from sqlalchemy.orm import Session
 
-from app.authorization.domain import require_internal_account, require_internal_role
+from app.authorization.domain import (
+    require_external_reader,
+    require_internal_account,
+    require_internal_role,
+)
 from app.core.errors import ForbiddenOperation
 from app.identity.domain import Principal
 from app.identity.models import AuditEvent
@@ -45,6 +49,26 @@ def authorize_internal_account(
 ) -> None:
     try:
         require_internal_account(principal)
+    except ForbiddenOperation:
+        record_denial(
+            session,
+            principal=principal,
+            request_id=request_id,
+            event_code=event_code,
+            reason="permission_denied",
+        )
+        raise
+
+
+def authorize_external_reader(
+    session: Session,
+    *,
+    principal: Principal,
+    request_id: UUID,
+    event_code: str,
+) -> None:
+    try:
+        require_external_reader(principal)
     except ForbiddenOperation:
         record_denial(
             session,

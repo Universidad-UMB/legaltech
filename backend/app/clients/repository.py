@@ -42,3 +42,7 @@ def client_for_assigned_account(
         )
     )
     return session.scalar(select(Client).where(Client.id == client_id, assignment_exists))
+
+
+def client_for_update(session: Session, *, client_id: UUID) -> Client | None:
+    return session.scalar(select(Client).where(Client.id == client_id).with_for_update(of=Client))

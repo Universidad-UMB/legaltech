@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.acquisitions import repository as acquisition_repository
+from app.audit import repository as audit_repository
 from app.authorization.domain import ACTIVATION_ROLES
 from app.authorization.service import (
     authorize_internal_account,
@@ -224,6 +225,69 @@ class TrackingService:
                 principal=principal,
                 request_id=request_id,
                 event_code="TRACKING_ACTIVATE",
+                reason="resource_not_in_scope",
+            )
+            raise
+        except IntegrityError as exc:
+            raise ResourceConflict from exc
+
+    def finish_tracking(
+        self,
+        session: Session,
+        *,
+        principal: Principal,
+        request_id: UUID,
+        tracking_id: UUID,
+        reason: str,
+    ) -> TrackingData:
+        event_code = "TRACKING_FINISH"
+        authorize_internal_roles(
+            session,
+            principal=principal,
+            request_id=request_id,
+            event_code=event_code,
+            allowed_roles={"ADMIN", "ANALYST"},
+        )
+        try:
+            with session.begin():
+                tracking = repository.tracking_for_assigned_account(
+                    session,
+                    tracking_id=tracking_id,
+                    account_id=principal.account_id,
+                    lock=True,
+                )
+                if tracking is None:
+                    raise ResourceNotFound
+                if tracking.status != "ACTIVE":
+                    raise ResourceConflict
+
+                repository.finish_tracking(tracking)
+                audit_repository.add_state_transition(
+                    session,
+                    resource_type="TRACKING",
+                    tracking_id=tracking.id,
+                    from_state="ACTIVE",
+                    to_state="FINISHED",
+                    principal=principal,
+                    request_id=request_id,
+                    reason=reason,
+                )
+                audit_repository.add_success_event(
+                    session,
+                    principal=principal,
+                    request_id=request_id,
+                    event_code=event_code,
+                    resource_kind="TRACKING",
+                    resource_id=tracking.id,
+                    sanitized_reason="state_changed",
+                )
+                return self._tracking_data(tracking)
+        except ResourceNotFound:
+            record_denial(
+                session,
+                principal=principal,
+                request_id=request_id,
+                event_code=event_code,
                 reason="resource_not_in_scope",
             )
             raise
