@@ -22,15 +22,16 @@ def create_account(
     person = Person(id=person_id, display_name="Synthetic test person")
     session.add(person)
     if account_kind == "EXTERNAL":
-        client_id = client_id or uuid4()
-        session.add(
-            Client(
-                id=client_id,
-                client_code=f"client-{person_id.hex[:12]}",
-                name="Synthetic test client",
-                status="ACTIVE",
+        if client_id is None:
+            client_id = uuid4()
+            session.add(
+                Client(
+                    id=client_id,
+                    client_code=f"client-{person_id.hex[:12]}",
+                    name="Synthetic test client",
+                    status="ACTIVE",
+                )
             )
-        )
     else:
         client_id = None
     session.flush()

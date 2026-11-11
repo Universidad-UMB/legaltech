@@ -1,6 +1,8 @@
-# LegalTech backend — INC-00
+# LegalTech backend — INC-00 e INC-01
 
-INC-00 provides the local FastAPI shell, identity and session handling, PostgreSQL migration, synthetic identity bootstrap, and quality checks. It implements only `healthz`, `login`, `logout`, and `getPrincipal` from the canonical OpenAPI contract. The bootstrap creates the synthetic people, Alfa/Beta clients, accounts, and roles; it does not create processes or trackings.
+INC-00 provides the local FastAPI shell, identity and session handling, PostgreSQL migration, synthetic identity bootstrap, and quality checks. INC-01 adds client, judicial process, and tracking management with contextual internal authorization. Implemented operation IDs are `healthz`, `login`, `logout`, `getPrincipal`, `createClient`, `getClient`, `createProcess`, `getProcess`, `createTracking`, `getTracking`, and `activateTracking`.
+
+The bootstrap creates synthetic people, Alfa/Beta clients, accounts, and roles. Processes and trackings are created through the API; internal assignments and external scopes remain local seed data and have no API mutation routes.
 
 This is a local prototype. It has no connection to judicial sources, LLMs, OCR, email, PDF generation, or production services.
 
@@ -27,6 +29,14 @@ uv run python -m scripts.bootstrap_demo
 ```
 
 The bootstrap requires a 12–256 character `DEMO_SEED_PASSWORD`, supplied through the hidden prompt or the current shell environment. The same password is assigned to all eight synthetic demo accounts. Re-running the bootstrap updates fixture identities and password hashes and revokes existing sessions for those accounts. It is safe only against the local `legaltech_demo` database.
+
+After creating the fixture processes and trackings through the internal API, apply the fixture's internal assignments and external read scopes:
+
+```powershell
+uv run python -m scripts.seed_authorization_context
+```
+
+This seed is restricted to local `legaltech_demo`, adds only missing assignments/scopes, and does not reactivate revoked rows or reset data. It validates tracking codes and client/process references before committing. The API has no assignment or scope mutation routes.
 
 The local Swagger UI is available at `http://127.0.0.1:8001/docs`. `/healthz` confirms the API process is serving HTTP and intentionally does not claim database health.
 
@@ -60,3 +70,11 @@ This script runs the frozen dependency sync, Ruff lint and format checks, mypy o
 - Swagger and `/openapi.json` are enabled only in `APP_ENV=local`.
 - Database credentials and the bootstrap password are not stored in fixtures or source. The `legaltech_migrator` role is reserved for Alembic; the API runs as `legaltech_runtime`.
 - Compose resources use the dedicated `legaltech-backend` project and its own named volume. Do not run global Docker cleanup commands for this project.
+
+## INC-01 internal API
+
+- Creating clients, processes, and trackings requires an active internal `ADMIN` session. Radicados are text and must contain exactly 23 ASCII digits; duplicate client codes, radicados, or open client/process tracking pairs return `409`.
+- Reading a client, process, or tracking requires an internal account with an active assignment to a tracking in that resource's context. Having a role alone does not grant access; unassigned or foreign resources return a generic `404`.
+- Activating a tracking requires `ADMIN` or `ANALYST`, an active assignment to that tracking, an active client, and the `PENDING` state. Only `PENDING → ACTIVE` is accepted.
+- External accounts cannot call internal routes. Composite PostgreSQL foreign keys prevent an external account from receiving a scope for a different client's tracking and prevent external accounts from appearing in internal assignment rows.
+- Tracking codes are allocated locally as `SEG-{initial}-{sequence}` under a PostgreSQL transaction lock. Identifiers remain random UUIDs; the code is not an authorization token.

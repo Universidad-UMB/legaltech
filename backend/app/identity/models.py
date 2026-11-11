@@ -16,6 +16,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
+from app.clients.models import Client as Client
 from app.db import Base
 
 
@@ -29,26 +30,11 @@ class Person(Base):
     )
 
 
-class Client(Base):
-    __tablename__ = "clients"
-    __table_args__ = (CheckConstraint("status IN ('ACTIVE', 'SUSPENDED')", name="status"),)
-
-    id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True)
-    client_code: Mapped[str] = mapped_column(String(32), nullable=False, unique=True)
-    name: Mapped[str] = mapped_column(String(180), nullable=False)
-    status: Mapped[str] = mapped_column(String(12), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
-
-
 class Account(Base):
     __tablename__ = "accounts"
     __table_args__ = (
         UniqueConstraint("id", "account_kind", name="uq_accounts_id_account_kind"),
+        UniqueConstraint("id", "client_id", "account_kind", name="uq_accounts_id_client_kind"),
         CheckConstraint("account_kind IN ('INTERNAL', 'EXTERNAL')", name="account_kind"),
         CheckConstraint("status IN ('ACTIVE', 'DISABLED')", name="status"),
         CheckConstraint(

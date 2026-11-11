@@ -7,7 +7,9 @@ from sqlalchemy import inspect, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.identity.models import Account, AccountRole, Client, Person
+from app.clients.models import Client
+from app.identity.models import Account, AccountRole, Person
+from app.trackings.models import JudicialProcess
 from tests.conftest import TEST_ENGINE
 
 
@@ -16,6 +18,10 @@ def test_migration_is_current_and_identity_tables_exist() -> None:
     expected_tables = {
         "persons",
         "clients",
+        "judicial_processes",
+        "trackings",
+        "external_tracking_scopes",
+        "internal_tracking_assignments",
         "accounts",
         "account_roles",
         "auth_sessions",
@@ -23,10 +29,9 @@ def test_migration_is_current_and_identity_tables_exist() -> None:
     }
     table_names = set(inspector.get_table_names())
     assert expected_tables.issubset(table_names)
-    assert "judicial_processes" not in table_names
     with TEST_ENGINE.connect() as connection:
         revision = connection.scalar(text("SELECT version_num FROM alembic_version"))
-    assert revision == "0001_identity_clients_audit"
+    assert revision == "0002_clients_processes_trackings"
 
 
 def test_runtime_database_role_has_dml_without_ddl_privileges() -> None:
@@ -100,6 +105,13 @@ def test_database_rejects_role_that_does_not_match_account_kind(db_session: Sess
             role_code="EXTERNAL_READER",
         )
     )
+    with pytest.raises(IntegrityError):
+        db_session.flush()
+    db_session.rollback()
+
+
+def test_database_rejects_invalid_process_radicado(db_session: Session) -> None:
+    db_session.add(JudicialProcess(id=uuid4(), radicado="1234567890123456789012", label=None))
     with pytest.raises(IntegrityError):
         db_session.flush()
     db_session.rollback()

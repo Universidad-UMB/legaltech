@@ -11,9 +11,16 @@ from sqlalchemy import delete
 from sqlalchemy.orm import Session
 from starlette.testclient import TestClient
 
+from app.clients.models import Client
 from app.config import Settings
 from app.db import create_database_engine, session_factory
-from app.identity.models import Account, AccountRole, AuditEvent, AuthSession, Client, Person
+from app.identity.models import Account, AccountRole, AuditEvent, AuthSession, Person
+from app.trackings.models import (
+    ExternalTrackingScope,
+    InternalTrackingAssignment,
+    JudicialProcess,
+    Tracking,
+)
 
 _settings_from_env_file = Settings()
 os.environ["APP_ENV"] = "test"
@@ -55,6 +62,17 @@ def client(db_session: Session) -> Generator[TestClient, None, None]:
 
 def _clear_identity_data() -> None:
     with TEST_MIGRATION_SESSION_FACTORY() as cleanup_session:
-        for model in (AuditEvent, AuthSession, AccountRole, Account, Client, Person):
+        for model in (
+            AuditEvent,
+            AuthSession,
+            ExternalTrackingScope,
+            InternalTrackingAssignment,
+            AccountRole,
+            Tracking,
+            JudicialProcess,
+            Account,
+            Client,
+            Person,
+        ):
             cleanup_session.execute(delete(model))
         cleanup_session.commit()

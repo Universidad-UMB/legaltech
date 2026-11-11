@@ -331,9 +331,23 @@ def check_git_scope() -> None:
         raise GitGateError('Cambios fuera del alcance permitido: ' + ', '.join(unexpected[:12]))
 
 
+def normalize_ticket_report(ticket: str) -> None:
+    """Remove only end-of-line whitespace from the generated ticket report."""
+    report = ROOT / 'backend' / 'reports' / f'{ticket}.md'
+    if not report.is_file():
+        return
+    source = report.read_text(encoding='utf-8')
+    normalized = re.sub(r'[ \t]+(?=\r?\n)', '', source)
+    normalized = re.sub(r'[ \t]+\Z', '', normalized)
+    if normalized != source:
+        report.write_text(normalized, encoding='utf-8')
+        print(f'{ticket}: normalized trailing whitespace in {report.relative_to(ROOT)}', flush=True)
+
+
 def commit_verified_ticket(ticket: str) -> str:
     """Stage a strict allowlist; never stage .nodeterm, .autopilot, or secrets."""
     check_git_scope()
+    normalize_ticket_report(ticket)
     git('add', '-A', '--', 'backend')
     if (ROOT / 'docs' / 'ENTREGA-FINAL.md').exists():
         git('add', '-A', '--', 'docs/ENTREGA-FINAL.md')
@@ -397,7 +411,7 @@ Lee primero AGENTS.md, AGENT.md, tickets/{ticket}.md, documentación de dominio 
 Este es el intento {attempt}. El orquestador no preguntará si debe continuar a otro incremento: verificará tus cambios y lo lanzará automáticamente si pasa.
 No edites governance/APROBACION-DEMO-001.json, .autopilot/, AGENTS.md, orquestación ni pruebas canónicas como atajo. No añadas integraciones reales. Modifica solo backend/ y, en INC-07, docs/ENTREGA-FINAL.md.
 Debes crear/actualizar tests reales, asegurar uv.lock, DB local PostgreSQL, Alembic, Ruff, mypy y pytest. No aceptes 'terminado' sin pruebas. Evita cambios no autorizados a OpenAPI, no ejecutes git add/commit/push (lo hará el orquestador tras verificar), ni toques datos reales. No formules preguntas al operador; documenta bloqueos materiales.
-Al finalizar deja un resumen de archivos y comandos ejecutados con resultados verdaderos; cualquier bloqueo nuevo debe quedar por escrito y sin falsificar el estado.
+Al finalizar deja un resumen de archivos y comandos ejecutados con resultados verdaderos; cualquier bloqueo nuevo debe quedar por escrito y sin falsificar el estado. En los Markdown, no dejes espacios ni tabulaciones al final de las líneas; ejecuta `git diff --check` antes de cerrar.
 '''
     if reason:
         intro += f'\nEl intento anterior no pasó el gate. Diagnóstico resumido:\n{reason[:3000]}\nResuelve la causa antes de terminar.\n'

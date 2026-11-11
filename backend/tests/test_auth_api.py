@@ -189,7 +189,9 @@ def test_validation_errors_are_problem_json_without_request_values(client: TestC
     body = _assert_problem(response, 422)
     assert body["title"] == "Unprocessable Content"
     assert "never-echo-this-value" not in response.text
-    assert "bad" not in response.text
+    # Check the serialized value exactly; a random request UUID can contain "bad" by chance.
+    assert '"bad"' not in response.text
+    assert '"extra"' not in response.text
 
 
 def test_missing_invalid_bearer_and_login_rate_limit_are_problem_responses(

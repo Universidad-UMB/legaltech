@@ -8,12 +8,15 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
 
+from app.clients.api import router as clients_router
 from app.config import Settings
+from app.core.errors import ApplicationError
 from app.db import create_database_engine, session_factory
 from app.identity.api import router as identity_router
 from app.identity.domain import AuthenticationFailed, RateLimited
 from app.identity.rate_limit import LoginRateLimiter
 from app.identity.service import IdentityService
+from app.trackings.api import router as trackings_router
 
 logger = logging.getLogger("legaltech.api")
 
@@ -25,6 +28,17 @@ class LegalTechFastAPI(FastAPI):
             "/api/v1/auth/sessions": {"post": ("401", "422", "429")},
             "/api/v1/auth/sessions/current": {"delete": ("401",)},
             "/api/v1/auth/me": {"get": ("401",)},
+            "/api/v1/internal/clients": {"post": ("401", "403", "409", "422")},
+            "/api/v1/internal/clients/{client_id}": {"get": ("401", "403", "404", "409", "422")},
+            "/api/v1/internal/processes": {"post": ("401", "403", "409", "422")},
+            "/api/v1/internal/processes/{process_id}": {"get": ("401", "403", "404", "409", "422")},
+            "/api/v1/internal/trackings": {"post": ("401", "403", "404", "409", "422")},
+            "/api/v1/internal/trackings/{tracking_id}": {
+                "get": ("401", "403", "404", "409", "422")
+            },
+            "/api/v1/internal/trackings/{tracking_id}/activate": {
+                "post": ("401", "403", "404", "409", "422")
+            },
         }
         for path, operations in problem_responses.items():
             for method, status_codes in operations.items():
@@ -36,11 +50,55 @@ class LegalTechFastAPI(FastAPI):
                         content["application/problem+json"] = json_schema
 
         schemas = schema.get("components", {}).get("schemas", {})
-        principal = schemas.get("Principal", {})
-        client_id = principal.get("properties", {}).get("client_id", {})
-        nullable_uuid = client_id.pop("anyOf", None)
-        if nullable_uuid is not None:
-            client_id["oneOf"] = nullable_uuid
+        for model in schemas.values():
+            properties = model.get("properties", {})
+            for property_schema in properties.values():
+                nullable_variants = property_schema.pop("anyOf", None)
+                if nullable_variants is not None and any(
+                    variant.get("type") == "null" for variant in nullable_variants
+                ):
+                    property_schema["oneOf"] = nullable_variants
+
+        schema_constraints = {
+            "Client": {"id": {"minLength": 1}, "status": {"minLength": 1}},
+            "Process": {
+                "id": {"minLength": 1},
+                "label": {"minLength": 1, "maxLength": 180},
+            },
+            "ProcessCreate": {"label": {"minLength": 1, "maxLength": 180}},
+            "TrackingCreate": {
+                "client_id": {"minLength": 1},
+                "process_id": {"minLength": 1},
+            },
+            "Tracking": {
+                "id": {"minLength": 1},
+                "client_id": {"minLength": 1},
+                "process_id": {"minLength": 1},
+                "status": {"minLength": 1},
+                "baseline_observation_id": {"minLength": 1},
+                "last_adopted_observation_id": {"minLength": 1},
+            },
+        }
+        for schema_name, constraints in schema_constraints.items():
+            properties = schemas.get(schema_name, {}).get("properties", {})
+            for property_name, property_constraints in constraints.items():
+                property_schema = properties.get(property_name, {})
+                variants = property_schema.get("oneOf")
+                if variants is None:
+                    property_schema.update(property_constraints)
+                    continue
+                for variant in variants:
+                    if variant.get("type") == "string":
+                        variant.update(property_constraints)
+
+        for path_item in schema.get("paths", {}).values():
+            for operation in path_item.values():
+                if not isinstance(operation, dict):
+                    continue
+                for parameter in operation.get("parameters", []):
+                    parameter_schema = parameter.get("schema", {})
+                    if parameter_schema.get("format") == "uuid":
+                        parameter_schema.setdefault("minLength", 1)
         return schema
 
 
@@ -96,6 +154,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.identity_service = IdentityService()
     app.state.login_rate_limiter = LoginRateLimiter()
     app.include_router(identity_router)
+    app.include_router(clients_router)
+    app.include_router(trackings_router)
 
     @app.middleware("http")
     async def attach_request_id(
@@ -127,6 +187,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             title="Unauthorized",
             detail="Invalid credentials or bearer token.",
             headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    @app.exception_handler(ApplicationError)
+    async def application_error(request: Request, exc: ApplicationError) -> JSONResponse:
+        return _problem(
+            request,
+            status=exc.status_code,
+            title=exc.title,
+            detail=exc.detail,
         )
 
     @app.exception_handler(RateLimited)
