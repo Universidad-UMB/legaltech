@@ -15,6 +15,7 @@ from app.novelties.models import Novelty, NoveltyReview, StateTransition
 from app.trackings.models import InternalTrackingAssignment
 from tests.conftest import TEST_MIGRATION_SESSION_FACTORY
 from tests.factories import create_account
+from tests.traceability import trace_cases
 
 INTERNAL_API = "/api/v1/internal"
 PASSWORD = "Synthetic-Test-Passphrase-2026!"
@@ -153,8 +154,9 @@ def _create_novelty_context(
     )
 
 
+@trace_cases("DT-36")
 def test_assigned_analyst_and_distinct_lawyer_create_audited_reviews(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     context = _create_novelty_context(client, db_session, suffix="inc04-flow")
     novelty_path = f"{INTERNAL_API}/novelties/{context.novelty_id}"
@@ -316,8 +318,9 @@ def test_assigned_analyst_and_distinct_lawyer_create_audited_reviews(
         owner_session.rollback()
 
 
+@trace_cases("API-N16", "API-N17", "API-N06", "DT-22", "DT-39")
 def test_wrong_role_scope_states_and_request_validation_are_enforced(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     context = _create_novelty_context(client, db_session, suffix="inc04-guards")
     novelty_path = f"{INTERNAL_API}/novelties/{context.novelty_id}"

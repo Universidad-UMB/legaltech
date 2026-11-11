@@ -26,6 +26,7 @@ from app.trackings.service import TrackingService
 from scripts.seed_authorization_context import load_fixture, seed_authorization_context
 from tests.conftest import TEST_ENGINE, TEST_SESSION_FACTORY
 from tests.factories import create_account
+from tests.traceability import trace_cases
 
 INTERNAL_API = "/api/v1/internal"
 PASSWORD = "Synthetic-test-password-01!"
@@ -93,8 +94,9 @@ def fixture_string(record: dict[str, object], field: str) -> str:
     return value
 
 
+@trace_cases("DT-03")
 def test_inc01_acceptance_process_tracking_scope_and_activation(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     admin = create_account(db_session, username="admin.inc01", password=PASSWORD)
     headers = login(client, "admin.inc01")
@@ -234,9 +236,10 @@ def test_inc01_acceptance_process_tracking_scope_and_activation(
     assert all(event.sanitized_reason == "resource_not_in_scope" for event in denied_access_events)
 
 
+@trace_cases("DT-01", "API-N12")
 @pytest.mark.parametrize("radicado", ["1" * 22, "1" * 24, "1" * 22 + "A"])
 def test_create_process_rejects_invalid_radicado(
-    client: TestClient, db_session: Session, radicado: str
+    client: TestClient, db_session: Session, radicado: str, _requirement_ids: tuple[str, ...]
 ) -> None:
     create_account(db_session, username="admin.invalid-radicado", password=PASSWORD)
     headers = login(client, "admin.invalid-radicado")
@@ -250,8 +253,9 @@ def test_create_process_rejects_invalid_radicado(
     assert "radicado" not in response.text
 
 
+@trace_cases("DT-02", "API-N25")
 def test_create_process_duplicate_is_conflict_and_extra_fields_are_rejected(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     create_account(db_session, username="admin.process-conflict", password=PASSWORD)
     headers = login(client, "admin.process-conflict")
@@ -271,8 +275,9 @@ def test_create_process_duplicate_is_conflict_and_extra_fields_are_rejected(
     assert extra_field.status_code == 422
 
 
+@trace_cases("API-N05")
 def test_internal_writes_require_admin_and_external_accounts_cannot_use_internal_api(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     create_account(
         db_session,
@@ -323,8 +328,9 @@ def test_internal_writes_require_admin_and_external_accounts_cannot_use_internal
     }
 
 
+@trace_cases("DT-04", "DT-05")
 def test_composite_foreign_keys_reject_cross_client_scopes_and_external_assignments(
-    db_session: Session,
+    db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     alfa = Client(
         id=uuid4(),
@@ -446,8 +452,9 @@ def test_composite_foreign_keys_reject_cross_client_scopes_and_external_assignme
     db_session.rollback()
 
 
+@trace_cases("DT-06")
 def test_local_fixture_seeding_is_idempotent_and_preserves_revoked_assignments(
-    db_session: Session,
+    db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     fixture = load_fixture()
     client_rows = fixture_records(fixture, "clients")

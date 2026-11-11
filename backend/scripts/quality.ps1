@@ -7,7 +7,7 @@ try {
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     uv run ruff format --check app migrations scripts tests
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    uv run mypy app
+    uv run mypy app scripts
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     uv run pytest -q
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

@@ -22,6 +22,7 @@ from app.novelties.service import EvaluationService
 from app.trackings.models import InternalTrackingAssignment, Tracking
 from tests.conftest import TEST_ENGINE, TEST_SESSION_FACTORY
 from tests.factories import create_account
+from tests.traceability import trace_cases
 
 INTERNAL_API = "/api/v1/internal"
 PASSWORD = "Synthetic-Test-Passphrase-2026!"
@@ -135,8 +136,9 @@ def _create_comparison(
     return response.json()
 
 
+@trace_cases("DT-15", "DT-16", "API-N14")
 def test_comparison_evaluation_novelty_and_adoption_are_idempotent_and_scoped(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     tracking_id, process_id, admin, analyst, admin_headers, analyst_headers = _create_context(
         client, db_session, suffix="inc03-flow"
@@ -392,8 +394,9 @@ def test_comparison_evaluation_novelty_and_adoption_are_idempotent_and_scoped(
     db_session.rollback()
 
 
+@trace_cases("DT-13", "DT-14")
 def test_comparison_records_non_comparable_pairs_without_confirming_changes(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     _, process_id, _, _, admin_headers, analyst_headers = _create_context(
         client, db_session, suffix="inc03-order"
@@ -457,8 +460,9 @@ def test_comparison_records_non_comparable_pairs_without_confirming_changes(
     )
 
 
+@trace_cases("DT-19")
 def test_evaluation_and_adoption_reject_skipping_a_comparable_snapshot(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     tracking_id, process_id, _, _, _, analyst_headers = _create_context(
         client, db_session, suffix="inc03-skip"
@@ -603,8 +607,9 @@ def _insert_synthetic_observation(session: Session, *, process_id: UUID) -> UUID
     return observation_id
 
 
+@trace_cases("DT-20", "API-N15")
 def test_concurrent_comparison_evaluation_and_adoption_use_independent_sessions(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     tracking_id, process_id, _, analyst, _, analyst_headers = _create_context(
         client, db_session, suffix="inc03-race"

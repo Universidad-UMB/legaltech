@@ -22,6 +22,7 @@ from app.trackings.models import (
 )
 from tests.conftest import TEST_ENGINE, TEST_SESSION_FACTORY
 from tests.factories import create_account
+from tests.traceability import trace_cases
 
 INTERNAL_API = "/api/v1/internal"
 PASSWORD = "Synthetic-Test-Passphrase-2026!"
@@ -99,8 +100,9 @@ def _create_context(
     return tracking_id, process_id, analyst.id, admin_headers, analyst_headers
 
 
+@trace_cases("API-N23", "API-N24")
 def test_acquisition_observation_baseline_idempotency_and_coverage(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     tracking_id, process_id, _, admin_headers, analyst_headers = _create_context(
         client, db_session, suffix="inc02-flow"
@@ -309,8 +311,9 @@ def test_acquisition_observation_baseline_idempotency_and_coverage(
     )
 
 
+@trace_cases("DT-07", "API-N34")
 def test_acquisition_requires_internal_assignment_and_matching_fixture_process(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     _, process_id, _, admin_headers, analyst_headers = _create_context(
         client, db_session, suffix="inc02-scope"
@@ -434,8 +437,9 @@ def test_acquisition_requires_internal_assignment_and_matching_fixture_process(
     assert external_attempt.status_code == 403
 
 
+@trace_cases("DT-11", "DT-12")
 def test_postgres_rejects_mutation_of_sealed_observation_evidence(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     tracking_id, process_id, _, _, analyst_headers = _create_context(
         client, db_session, suffix="inc02-seal"
@@ -516,8 +520,9 @@ def test_postgres_rejects_mutation_of_sealed_observation_evidence(
     db_session.rollback()
 
 
+@trace_cases("DT-08")
 def test_incomplete_unsealed_observation_cannot_be_adopted(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     tracking_id, process_id, _, admin_headers, analyst_headers = _create_context(
         client, db_session, suffix="inc02-incomplete-adoption"
@@ -557,8 +562,9 @@ def test_incomplete_unsealed_observation_cannot_be_adopted(
     assert tracking.json()["last_adopted_observation_id"] is None
 
 
+@trace_cases("DT-10", "API-N13")
 def test_failed_acquisition_cannot_create_comparable_observation(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     _, process_id, _, _, _ = _create_context(client, db_session, suffix="inc02-failed-guard")
     failed_run = AcquisitionRun(
@@ -591,8 +597,9 @@ def test_failed_acquisition_cannot_create_comparable_observation(
     db_session.rollback()
 
 
+@trace_cases("DT-09")
 def test_request_key_and_baseline_retries_serialize_on_postgres_rows(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     tracking_id, process_id, analyst_id, _, _ = _create_context(
         client, db_session, suffix="inc02-race"

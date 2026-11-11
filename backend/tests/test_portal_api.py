@@ -25,6 +25,7 @@ from tests.test_publications_api import (
     _create_and_publish,
     _create_publication_context,
 )
+from tests.traceability import trace_cases
 
 REASON = "Synthetic operator requested this state change."
 
@@ -94,8 +95,18 @@ def _problem_identity(response: Any) -> tuple[object, ...]:
     )
 
 
+@trace_cases(
+    "API-N07",
+    "API-N08",
+    "API-N11",
+    "API-N27",
+    "API-N28",
+    "API-N36",
+    "DT-21",
+    "DT-31",
+)
 def test_portal_filters_tenant_scope_and_reports_current_coverage(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     context = _create_novelty_context(client, db_session, suffix="inc06-portal-scope")
     tracking_a1 = db_session.get(Tracking, context.tracking_id)
@@ -244,8 +255,9 @@ def test_portal_filters_tenant_scope_and_reports_current_coverage(
     )
 
 
+@trace_cases("API-N09", "API-N10", "DT-32", "DT-33")
 def test_suspension_reactivation_and_finish_gate_portal_without_removing_publication(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     context = _create_publication_context(client, db_session, suffix="inc06-state-flow")
     publication, version = _create_and_publish(client, context)
@@ -413,10 +425,12 @@ def test_suspension_reactivation_and_finish_gate_portal_without_removing_publica
     assert {item.resource_id for item in audit_events} == {reader.client_id, context.tracking_id}
 
 
+@trace_cases("DT-36")
 def test_state_transition_and_audit_roll_back_together(
     client: TestClient,
     db_session: Session,
     monkeypatch: pytest.MonkeyPatch,
+    _requirement_ids: tuple[str, ...],
 ) -> None:
     context = _create_novelty_context(client, db_session, suffix="inc06-rollback")
     tracking = db_session.get(Tracking, context.tracking_id)
@@ -450,8 +464,9 @@ def test_state_transition_and_audit_roll_back_together(
     )
 
 
+@trace_cases("API-N35")
 def test_parallel_publish_and_suspend_cannot_restore_portal_access(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     context = _create_publication_context(client, db_session, suffix="inc06-race")
     created = client.post(

@@ -25,6 +25,7 @@ from app.trackings.models import InternalTrackingAssignment
 from tests.conftest import TEST_MIGRATION_SESSION_FACTORY, TEST_SESSION_FACTORY
 from tests.factories import create_account
 from tests.test_novelties_api import INTERNAL_API, PASSWORD, _create_novelty_context, _login
+from tests.traceability import trace_cases
 
 PUBLICATIONS_API = f"{INTERNAL_API}/publications"
 VERSION_API = f"{INTERNAL_API}/publication-versions"
@@ -285,8 +286,20 @@ def _create_and_publish(
     return publication, published.json()
 
 
+@trace_cases(
+    "API-N18",
+    "API-N19",
+    "API-N20",
+    "API-N21",
+    "DT-25",
+    "DT-26",
+    "DT-27",
+    "DT-28",
+    "DT-29",
+    "DT-37",
+)
 def test_publication_flow_freezes_versions_separates_people_and_selects_current_atomically(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     context = _create_publication_context(client, db_session, suffix="inc05-flow")
     created = _create_publication(client, context, headers=context.analyst_headers)
@@ -589,10 +602,12 @@ def test_publication_requires_assigned_preparer_and_human_legal_treatment(
     assert db_session.scalar(select(func.count()).select_from(Publication)) == 0
 
 
+@trace_cases("DT-30", "API-N22")
 def test_publish_failure_rolls_back_state_and_keeps_previous_current_version(
     client: TestClient,
     db_session: Session,
     monkeypatch: pytest.MonkeyPatch,
+    _requirement_ids: tuple[str, ...],
 ) -> None:
     context = _create_publication_context(client, db_session, suffix="inc05-rollback")
     publication, published_v1 = _create_and_publish(client, context)
@@ -647,8 +662,9 @@ def test_publish_failure_rolls_back_state_and_keeps_previous_current_version(
         )
 
 
+@trace_cases("DT-23", "DT-24")
 def test_postgres_publication_guards_reject_bad_preparer_and_incomplete_submission(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     context = _create_publication_context(client, db_session, suffix="inc05-database")
     created = _create_publication(client, context)

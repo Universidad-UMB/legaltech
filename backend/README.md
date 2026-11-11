@@ -1,4 +1,4 @@
-# LegalTech backend — INC-00 a INC-06
+# LegalTech backend — INC-00 a INC-07
 
 INC-00 provides the local FastAPI shell, identity and session handling, PostgreSQL migration, synthetic identity bootstrap, and quality checks. INC-01 adds client, judicial process, and tracking management with contextual internal authorization. INC-02 adds synthetic fixture acquisitions, sealed observations, and tracking baseline adoption. INC-03 adds comparisons and eligibility evaluation. INC-04 adds human novelty reviews. INC-05 adds versioned text publications, independent approval, and atomic selection of the current version. INC-06 adds the external portal, client suspension/reactivation, and tracking finalization. Implemented operation IDs are `healthz`, `login`, `logout`, `getPrincipal`, `createClient`, `getClient`, `suspendClient`, `reactivateClient`, `createProcess`, `getProcess`, `createTracking`, `getTracking`, `activateTracking`, `finishTracking`, `createAcquisition`, `getAcquisition`, `getObservation`, `adoptObservation`, `compareObservations`, `getComparison`, `evaluateComparison`, `listNovelties`, `getNovelty`, `startOperativeReview`, `escalateNovelty`, `recordLegalReview`, `createPublication`, `getPublication`, `createPublicationVersion`, `getPublicationVersion`, `submitPublicationVersion`, `decidePublicationVersion`, `publishPublicationVersion`, `portalTrackings`, and `portalCurrentPublication`.
 
@@ -100,7 +100,26 @@ The migration test fixture also applies Alembic `head` before tests. Tests conne
 ./scripts/quality.ps1
 ```
 
-This script runs the frozen dependency sync, Ruff lint and format checks, mypy on `app/`, and pytest. A CI runner can invoke the same script after provisioning the isolated PostgreSQL service and test database.
+This script runs the frozen dependency sync, Ruff lint and format checks, mypy on `app/` and `scripts/`, and pytest. A CI runner can invoke the same script after provisioning the isolated PostgreSQL service and test database.
+
+## INC-07 acceptance, CI, and safe demo reset
+
+The acceptance suite includes an API journey for `PROTO-AT-01..18`, restart persistence checks, PostgreSQL-backed negative and integrity coverage, runtime OpenAPI comparison, and reset-command safety tests. `tests/traceability.py` exposes canonical manifest IDs in pytest node IDs, and `tests/test_requirement_traceability.py` checks all 93 AT, API-N, and DT IDs against the collected test items. Run `uv run --frozen pytest --collect-only -q` from this directory to inspect them. Execution results are recorded in `reports/INC-07.md`.
+
+Run the full local CI entry point from PowerShell. It creates a local `.env` only when absent, starts only the `legaltech-backend` PostgreSQL service, applies migrations to `legaltech_test`, and runs lock, Ruff, mypy, pytest, Alembic, and whitespace checks. It does not stop containers or volumes.
+
+```powershell
+.\scripts\ci.ps1
+```
+
+The dedicated demo reset requires a local environment, the migration role, the `legaltech_demo` database at the reviewed Alembic head, and an explicit target confirmation. It clears application data but preserves the migration schema. It does not accept `legaltech_test`.
+
+```powershell
+uv run python -m scripts.reset_demo --confirm legaltech_demo
+uv run python -m scripts.bootstrap_demo
+```
+
+`bootstrap_demo` prompts for `DEMO_SEED_PASSWORD` without echo. Recreate processes and trackings through the API, then run `uv run python -m scripts.seed_authorization_context`. Never use a Compose volume removal to reset the demo. See [`docs/DEMO-REST.md`](docs/DEMO-REST.md) for the complete synthetic API sequence.
 
 ## Identity and operational boundaries
 

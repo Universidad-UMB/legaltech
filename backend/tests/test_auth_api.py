@@ -12,6 +12,7 @@ from starlette.testclient import TestClient
 from app.identity.models import AuditEvent, AuthSession
 from tests.conftest import TEST_PASSWORD
 from tests.factories import create_account
+from tests.traceability import trace_cases
 
 
 def _login(client: TestClient, username: str = "admin.demo") -> dict[str, object]:
@@ -77,8 +78,9 @@ def test_get_principal_returns_identity_roles_and_no_secret(
     assert "password_hash" not in response.json()
 
 
+@trace_cases("API-N03")
 def test_unknown_and_wrong_password_have_same_generic_401_and_sanitized_audit(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     create_account(db_session, password=TEST_PASSWORD)
     wrong = client.post(
@@ -103,7 +105,10 @@ def test_unknown_and_wrong_password_have_same_generic_401_and_sanitized_audit(
     assert all(event.sanitized_reason == "invalid_credentials" for event in events)
 
 
-def test_expired_and_revoked_sessions_return_401(client: TestClient, db_session: Session) -> None:
+@trace_cases("API-N02")
+def test_expired_and_revoked_sessions_return_401(
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
+) -> None:
     account = create_account(db_session, password=TEST_PASSWORD)
     now = datetime.now(UTC)
     expired_token = secrets.token_urlsafe(32)
@@ -160,8 +165,9 @@ def test_logout_returns_204_revokes_session_and_repeat_returns_401(
     _assert_problem(client.delete("/api/v1/auth/sessions/current", headers=headers), 401)
 
 
+@trace_cases("API-N29")
 def test_disabled_account_cannot_login_or_reuse_an_existing_session(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     account = create_account(db_session, password=TEST_PASSWORD)
     token = str(_login(client)["access_token"])
@@ -180,7 +186,10 @@ def test_disabled_account_cannot_login_or_reuse_an_existing_session(
     )
 
 
-def test_validation_errors_are_problem_json_without_request_values(client: TestClient) -> None:
+@trace_cases("API-N25")
+def test_validation_errors_are_problem_json_without_request_values(
+    client: TestClient, _requirement_ids: tuple[str, ...]
+) -> None:
     response = client.post(
         "/api/v1/auth/sessions",
         json={"username": "", "password": "never-echo-this-value", "extra": "bad"},
@@ -194,8 +203,9 @@ def test_validation_errors_are_problem_json_without_request_values(client: TestC
     assert '"extra"' not in response.text
 
 
+@trace_cases("API-N01", "API-N04")
 def test_missing_invalid_bearer_and_login_rate_limit_are_problem_responses(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, _requirement_ids: tuple[str, ...]
 ) -> None:
     _assert_problem(client.get("/api/v1/auth/me"), 401)
     _assert_problem(client.get("/api/v1/auth/me", headers={"Authorization": "Basic abc"}), 401)
